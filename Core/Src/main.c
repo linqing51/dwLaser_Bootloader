@@ -21,13 +21,14 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "fatfs.h"
+#include "i2c.h"
 #include "usart.h"
 #include "usb_host.h"
 #include "gpio.h"
-#include "bootloader.h"
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "bootloader.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -95,6 +96,7 @@ int main(void)
   MX_FATFS_Init();
   MX_USB_HOST_Init();
   MX_USART3_UART_Init();
+  MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
 	bootLoadInit();
 	HAL_FLASH_Unlock();

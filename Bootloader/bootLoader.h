@@ -3,7 +3,6 @@
 /*****************************************************************************/
 #define DEBUG_BOOTLOADER					0
 #define DEBUG_NOBEEP						1
-#define DEBUG_USING_TRACE					0
 #define BOARD_STM32F413H_DISCO				0//STM32F413H 官方开发板
 #define BOARD_STM32F407_DEV					1//STM32F407 淘宝开发板
 #define BOARD_STM32F413RH_DWLASER			0//STM32F413RH 产品板
@@ -12,6 +11,7 @@
 /*****************************************************************************/
 #include "cmsis_armcc.h"
 /*****************************************************************************/
+#include "usbh_platform.h"
 #include "usbh_core.h"
 #include "usbh_msc.h"
 #include "ff.h"

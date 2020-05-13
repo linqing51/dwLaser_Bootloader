@@ -7,7 +7,6 @@
 //SECTOR4->64K+:APP
 /*****************************************************************************/
 #if DEBUG_NOBEEP == 1
-
 #if BOARD_STM32F407_DEV == 1
 #define SET_RED_LED()						
 #define SET_GREEN_LED()						(HAL_GPIO_WritePin(GPIOF, GPIO_PIN_10, GPIO_PIN_SET))
@@ -75,6 +74,7 @@
 #define SBOT_FIRMWARE_FILENAME				"/sv_bot.bin"//回读BOT固件地址
 #define SMCU_FIRMWARE_FILENAME				"/sv_mcu.bin"//回读MCU固件地址
 #define SLCD_FIRMWARE_FILENAME				"/sv_lcd.pkg"//回读LCD固件地址
+#define BOOTLOADER_ERASE_ENABLE				0//Bootloader擦除使能
 /*****************************************************************************/
 #define BT_STATE_IDLE						0//空闲
 #define BT_STATE_USBHOST_INIT				1//FATFS 初始化
@@ -85,6 +85,7 @@
 #define BT_STATE_UPDATE_LCD_APP				6//更新屏幕应用固件
 #define BT_STATE_UPDATE_BOTH_APP			7//更新单片机和屏固件
 #define BT_STATE_UPDATE_ALL					8//更新单片机引导 应用 触摸屏固件
+#define BT_STATE_CLEAR_FLASH				9//清除FLASH空间
 #define BT_STATE_RESET						90//重启
 #define BT_STATE_RUN_APP					99//跳转到APP应用程序
 /*****************************************************************************/
@@ -109,6 +110,7 @@
 #define BT_FAIL_LCD_DOWNLOAD				'I'//LCD下载失败
 #define BT_FAIL_VECTOR_TABLE_INVALID		'J'//APP 向量表错误
 #define BT_FAIL_CHECK_BLANK					'K'//FLASH查空错误
+#define BT_FAIL_CLEAR_DONE					'L'//FLASH和EPROM清除完成
 /*****************************************************************************/
 #define GDDC_LCD_NORMAL_BAUDRATE			(115200UL)//LCD串口屏正常波特率
 #define GDDC_LCD_UPDATE_BAUDRATE			(115200UL)//LCD串口屏更新波特率
@@ -121,6 +123,7 @@
 #define GDDC_UART_HANDLE					huart1
 #define GDDC_UART_IRQ						USART1_IRQn
 #endif
+
 #define GDDC_RX_BUF_SIZE					64
 #define GDDC_TX_BUF_SIZE					(2048 + 4)
 #define GDDC_HEX 							0
@@ -131,6 +134,13 @@
 #define GDDC_RETRY_TIMES					10//发送重试次数
 #define GDDC_UPDATE_BAUDRATE				115200//不改变波特率
 /*****************************************************************************/
+#define MORSECODE_SPACE_TIME				1000
+#define MORSECODE_LONG_TIME					750
+#define MORSECODE_SHORT_TIME				150
+/*****************************************************************************/
+#define EPROM_ADR							0xA0
+#define EPROM_SIZE							256
+/*****************************************************************************/
 static uint32_t TmpReadSize = 0x00;
 static uint32_t RamAddress = 0x00;
 static __IO uint32_t LastPGAddress = APPLICATION_FLASH_START_ADDRESS;
@@ -139,7 +149,7 @@ static uint8_t RAM_Buf[BUFFER_SIZE] = {0x00};
 static uint8_t gddcRxBuf[GDDC_RX_BUF_SIZE];//屏幕串口接收缓冲区
 static uint8_t gddcTxBuf[GDDC_TX_BUF_SIZE];//屏幕串口发送缓冲区
 /*****************************************************************************/
-//const uint8_t bootloaderVer __attribute__((at(BOOTLOADER_FLASH_END_ADDRESS - 4))) = BOOTLOADER_VER;// MDK中定义
+extern I2C_HandleTypeDef hi2c1;
 /*****************************************************************************/
 FRESULT retUsbH;
 FATFS	USBH_fatfs;
@@ -171,7 +181,11 @@ static void dp_display_array(uint8_t *value,int bytes, int descriptive);
 static void beepDiag(uint8_t diag);
 static void SystemClock_Reset(void);
 static void UsbGpioReset(void);
+static void clearFlashAndEprom(void);
+void clearEprom(void);
 /*****************************************************************************/
+void epromTest(void);
+
 void resetInit(void){//复位后初始化
 	HAL_DeInit();
 	//复位RCC时钟
@@ -189,6 +203,9 @@ void bootLoadInit(void){//引导程序初始化
 	RESET_GREEN_LED();
 	RESET_BLUE_LED();
 	RESET_BEEP();
+	SET_BEEP();
+	HAL_Delay(200);
+	RESET_BEEP();
 }
 void bootLoadProcess(void){//bootload 执行程序
 	uint8_t fileBuff[64];
@@ -201,7 +218,8 @@ void bootLoadProcess(void){//bootload 执行程序
 			printf("\r\n");
 			printf("\r\n");
 			printf("\r\n");                                
-			printf("Bootloader:Start........bootloader ver:0x%08X\n", BOOTLOADER_VER);
+			printf("Bootloader:Start...............\n");
+			printf("Bootloader:Ver:0x%08X Build:%s:%s\r\n", BOOTLOADER_VER, __DATE__, __TIME__);
 			bootLoadState = BT_STATE_USBHOST_INIT;
 			break;
 		}
@@ -291,6 +309,15 @@ void bootLoadProcess(void){//bootload 执行程序
 						bootLoadState = BT_STATE_RUN_APP;
 					}
 				}
+				else if(fileBuff[0] == 'U' && fileBuff[1] == '0' && fileBuff[2] == 'F'){//U05 Clear 剩余FLASH区域和EEPROM
+					if(fileBuff[3] == DEVID_L && fileBuff[4] == DEVID_H){//设备匹配
+						printf("Bootloader:Clear mcu app flash & eprom!\n");
+						bootLoadState = BT_STATE_CLEAR_FLASH;
+					}
+					else{
+						bootLoadState = BT_STATE_RUN_APP;
+					}
+				}
 				else{//其它无需更新跳转到执行APP
 					bootLoadState = BT_STATE_RUN_APP;
 				}
@@ -298,6 +325,7 @@ void bootLoadProcess(void){//bootload 执行程序
 			break;
 		}
 		case BT_STATE_UPDATE_MCU_BOT:{
+#if BOOTLOADER_ERASE_ENABLE == 1
 			crcUdisk = updateMcuBot();
 			crcFlash = checksumMcuBot();
 			if(crcUdisk != crcFlash){
@@ -306,6 +334,7 @@ void bootLoadProcess(void){//bootload 执行程序
 			else{
 				printf("Bootloader:Checksum bootloader sucess.\n");
 			}
+#endif
 #if DEBUG_BOOTLOADER != 1
 			fileBuff[0] = 'U';
 			fileBuff[1] = '1';
@@ -333,6 +362,7 @@ void bootLoadProcess(void){//bootload 执行程序
 			else{
 				printf("Bootloader:Checksum mcu app sucess.\n");
 			}
+			clearEprom();
 #if DEBUG_BOOTLOADER != 1
 			fileBuff[0] = 'U';
 			fileBuff[1] = '1';
@@ -378,6 +408,7 @@ void bootLoadProcess(void){//bootload 执行程序
 			if(crcUdisk != crcFlash){
 				bootLoadFailHandler(BT_FAIL_LMCU_APP_CHECK);
 			}
+			clearEprom();
 			updateLcdApp();
 #if DEBUG_BOOTLOADER != 1
 			fileBuff[0] = 'U';
@@ -408,6 +439,7 @@ void bootLoadProcess(void){//bootload 执行程序
 			if(crcUdisk != crcFlash){
 				bootLoadFailHandler(BT_FAIL_LMCU_APP_CHECK);
 			}
+			clearEprom();
 			updateLcdApp();
 #if DEBUG_BOOTLOADER != 1
 			fileBuff[0] = 'U';
@@ -426,6 +458,10 @@ void bootLoadProcess(void){//bootload 执行程序
 			}
 			f_close(&CfgFile);
 			bootLoadState = BT_STATE_RESET;
+			break;
+		}
+		case BT_STATE_CLEAR_FLASH:{
+			clearFlashAndEprom();
 			break;
 		}
 		case BT_STATE_RESET:{
@@ -460,254 +496,255 @@ void bootLoadProcess(void){//bootload 执行程序
 	}
 }
 static void beepDiag(uint8_t diag){//蜂鸣器诊断声音 摩尔斯电码
+	//关闭USB VBUS
 	switch(diag){
 		case '0':{
 			//-
-			SET_BEEP();HAL_Delay(100);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();
 			break;
 		}
 		case '1':{
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();
 			break;
 		};
 		case '2':{
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();
 			break;
 		};
 		case '3':{
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP(); HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP(); HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();
 			break;
 		}
 		case '4':{
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();
 			break;
 		}
 		case '5':{
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();
 			break;
 		}
 		case '6':{
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();
 			break;
 		}
 		case '7':{	
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();
 			break;
 		}
 		case '8':{
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();
 			break;
 		}
 		case '9':{
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();
 			break;
 		}
 		case 'A':{
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();
 			break;
 		}
 		case 'B':{
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();
 			break;			
 		}
 		case 'C':{
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();
 			break;
 		}
 		case 'D':{
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();
 			break;
 		}
 		case 'E':{
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();
 			break;
 		}
 		case 'F':{
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();
 			break;
 		}
 		case 'G':{
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();
 			break;
 		}
 		case 'H':{
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();
 			break;			
 		}
 		case 'I':{
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();
 			break;
 		}
 		case 'J':{
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();
 			break;
 		}
 		case 'K':{
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();
 			break;
 		}
 		case 'L':{//．━ ．．
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(200);RESET_BEEP();
+			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();
 			break;
 		}
 		case 'M':{//━ ━
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();HAL_Delay(1000);
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(1000);RESET_BEEP();
+			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();
 			break;
 		}
 		default:break;
@@ -715,6 +752,7 @@ static void beepDiag(uint8_t diag){//蜂鸣器诊断声音 摩尔斯电码
 	HAL_Delay(3000);
 }
 static void bootLoadFailHandler(uint8_t ftype){//引导错误程序
+	MX_DriverVbusFS(FALSE);//关闭USB VBUS
 	//点亮红灯
 	SET_RED_LED();
 	switch(ftype){
@@ -832,10 +870,32 @@ static void bootLoadFailHandler(uint8_t ftype){//引导错误程序
 				beepDiag(BT_FAIL_CHECK_BLANK);
 			};
 		}
+		case BT_FAIL_CLEAR_DONE:{//
+			printf("Bootloader:FailHandler,Flash and Eprom easer done!.\n");
+			while(1){
+				beepDiag(BT_FAIL_CLEAR_DONE);
+			}
+		}
 		default:{
 			break;
 		}
 	}
+}
+static void clearFlashAndEprom(void){
+	RESET_GREEN_LED();
+	RESET_RED_LED();
+	SET_BLUE_LED();
+	HAL_FLASH_Unlock();
+	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_BSY|FLASH_FLAG_EOP|FLASH_FLAG_PGSERR|FLASH_FLAG_WRPERR);
+	if (FLASH_If_EraseApplication() != 0x00){//擦除APP FLASH区域失败
+		bootLoadFailHandler(BT_FAIL_ERASE_MCU_APP);
+	}
+	checkBlank(APPLICATION_FLASH_START_ADDRESS, APPLICATION_FLASH_SIZE);//FLASH 查空
+	SET_GREEN_LED();
+	RESET_RED_LED();
+	RESET_BLUE_LED();
+	clearEprom();
+	bootLoadFailHandler(BT_FAIL_CLEAR_DONE);
 }
 static uint16_t updateMcuBot(void){//更新MCU BOOTLOADER
 	retUsbH = f_open(&BotFile, LBOT_FIRMWARE_FILENAME, FA_OPEN_EXISTING | FA_READ);
@@ -1002,22 +1062,16 @@ static uint16_t updateLcdApp(void){//更新LCD APP
 	cmd[10] = cmd[1] + cmd[2] + cmd[3] + cmd[4] + cmd[5] + cmd[6] + cmd[7] + cmd[8] + cmd[9];
     //发送下载命令
 	memset(gddcRxBuf, 0x0, sizeof(gddcRxBuf));
-#if DEBUG_UPGRADE_LCD == 1
 	printf("Bootloader->updateLcdApp:Send filesize and up speed baudrate.\n");
-#endif
 	dp_display_text_num(cmd, 15);
 	uRet = HAL_UART_Receive(puart, gddcRxBuf, 1, 10000);//查询串口接收数据 超时10000mS
 	if(uRet != HAL_OK || gddcRxBuf[0] != 0xAA){
 		bootLoadFailHandler(BT_FAIL_LCD_NOT_RESPOND);
 	}
-#if DEBUG_UPGRADE_LCD
 	printf("Bootloader->updateLcdApp:Set up baudrate done.\n");
-#endif
 	if(baudrateTable[baudrateSelect] != upSpeedBaudrate){//提升波特率与当前波特率不相同
 		//重设串口到提升波特率
-#if DEBUG_UPGRADE_LCD
 		printf("Bootloader->updateLcdApp:Set lcd serial up baudrate %d.\n", upSpeedBaudrate);
-#endif
 		__HAL_UART_DISABLE(puart);//关闭串口
 		HAL_NVIC_DisableIRQ(GDDC_UART_IRQ);//关闭串口中断
 		HAL_NVIC_ClearPendingIRQ(GDDC_UART_IRQ);//清楚串口中断标志
@@ -1048,7 +1102,7 @@ static uint16_t updateLcdApp(void){//更新LCD APP
 		gddcTxBuf[0] = signName;
 		gddcTxBuf[1] = ~signName;
         //读取2048个字节但不超过文件大小
-        transferByte = blockSize;
+         transferByte = blockSize;
 		if(fileIndex + transferByte > fileSize){
 			transferByte = fileSize - fileIndex;
 		}
@@ -1072,29 +1126,21 @@ static uint16_t updateLcdApp(void){//更新LCD APP
 			lcdRetry ++;
 			//发送数据包，直到成功或次数超过限制
 			memset(gddcRxBuf, 0x0, sizeof(gddcRxBuf));
-#if DEBUG_UPGRADE_LCD == 1
 			printf("Bootloader->updateLcdApp:Send file block at 0x%08XH,", fileIndex);
-#endif
 			dp_display_text_num(gddcTxBuf, (blockSize + 4));//send data
 			uRet = HAL_UART_Receive(puart, gddcRxBuf, 2, 1000);//查询串口接收数据 超时1000            
 			if(uRet == HAL_OK){//接收正常
 				if(gddcRxBuf[1] == (uint8_t)(~(signName + 1)) || gddcRxBuf[0] == (signName+1)){
 					signName = signName + 1;
-#if DEBUG_UPGRADE_LCD == 1
 					printf("ok!\n");
-#endif
 					break;
 				}
 				else{
-#if DEBUG_UPGRADE_LCD == 1
 					printf("SignName is not invalid\n");
-#endif
 				}
 			}
 			else{//答应超时或错误
-#if DEBUG_UPGRADE_LCD == 1
 				printf("fail!\n");
-#endif
 				HAL_Delay(100);
 				if(lcdRetry > GDDC_RETRY_TIMES){//发送次数超时
 					bootLoadFailHandler(BT_FAIL_LCD_DOWNLOAD);
@@ -1268,6 +1314,51 @@ static void SystemClock_Reset(void){
 	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK){
 		Error_Handler();
 	}
+}
+
+
+HAL_StatusTypeDef EEPROM_WriteData(uint16_t MemAddress, uint8_t *pData, uint16_t Size){
+	uint16_t i;
+	HAL_StatusTypeDef sta;
+	for(i = 0;i < Size;i ++){
+		MemAddress += i;
+		sta = HAL_I2C_Mem_Write(&hi2c1, EPROM_ADR, MemAddress, I2C_MEMADD_SIZE_8BIT, &pData[i], 1, 200);
+		if(sta != HAL_OK){
+			return sta;
+		}
+		HAL_Delay(1);
+	}
+	return sta;
+}
+
+HAL_StatusTypeDef EEPROM_ReadData(uint16_t MemAddress, uint8_t *pData, uint16_t Size){
+	uint16_t i;
+	HAL_StatusTypeDef sta;
+	for(i = 0;i < Size;i ++){
+		MemAddress += i;
+		sta = HAL_I2C_Mem_Read(&hi2c1, EPROM_ADR, MemAddress,I2C_MEMADD_SIZE_8BIT, &pData[i], 1, 200);
+		if(sta != HAL_OK){
+			return sta;
+		}
+		HAL_Delay(10);
+	}
+	return sta;
+}
+void clearEprom(void){//EPROM清除
+	uint8_t var = 0;
+	uint32_t i;
+	for(i = 0;i < EPROM_SIZE;i ++){
+		EEPROM_WriteData(0, &var, 1);
+	}
+	printf("Bootloader->:Erase eprom sucess!\n");
+}
+void epromTest(void){
+	uint8_t wbuf[16] = {'0', '1', '2', '3', '4', '5', '6', '7', 
+	                        '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+	uint8_t rbuf[16];
+	EEPROM_WriteData(0x10, wbuf, 16);
+	EEPROM_ReadData(0x10, rbuf, 16);
+	while(1);
 }
 
 
