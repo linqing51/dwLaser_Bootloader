@@ -4,69 +4,19 @@
 //SECTOR1->16K:BOOTLOADER
 //SECTOR2->16K:BOOTLOADER
 //SECTOR3->16K:BOOTLOADER
-//SECTOR4->64K+:APP
+//SECTOR4->64K:BOOTLOADER
 /*****************************************************************************/
-#if DEBUG_NOBEEP == 1
-#if BOARD_STM32F407_DEV == 1
-#define SET_RED_LED()						
-#define SET_GREEN_LED()						(HAL_GPIO_WritePin(GPIOF, GPIO_PIN_10, GPIO_PIN_SET))
-#define SET_BLUE_LED()						
-#define SET_BEEP()							(HAL_GPIO_WritePin(GPIOF, GPIO_PIN_9, GPIO_PIN_RESET))
-
-#define RESET_RED_LED()						
-#define RESET_GREEN_LED()					(HAL_GPIO_WritePin(GPIOF, GPIO_PIN_10, GPIO_PIN_RESET))
-#define RESET_BLUE_LED()					
-#define RESET_BEEP()						(HAL_GPIO_WritePin(GPIOF, GPIO_PIN_9, GPIO_PIN_SET))
-
-#define FLIP_RED_LED()						
-#define FLIP_GREEN_LED()					(HAL_GPIO_TogglePin(GPIOF, GPIO_PIN_10))
-#define FLIP_BLUE_LED()						
-#define FLIP_BEEP()							(HAL_GPIO_TogglePin(GPIOF, GPIO_PIN_9))
-#endif
-
-#if BOARD_STM32F413H_DISCO == 1
-#define SET_RED_LED()						(HAL_GPIO_WritePin(GPIOE, GPIO_PIN_3, GPIO_PIN_SET))
-#define SET_GREEN_LED()						(HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET))
-#define SET_BLUE_LED()						
-#define SET_BEEP()							(HAL_GPIO_WritePin(GPIOF, GPIO_PIN_9, GPIO_PIN_RESET))
-
-#define RESET_RED_LED()						(HAL_GPIO_WritePin(GPIOE, GPIO_PIN_3, GPIO_PIN_RESET))
-#define RESET_GREEN_LED()					(HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET))
-#define RESET_BLUE_LED()					
-#define RESET_BEEP()						(HAL_GPIO_WritePin(GPIOF, GPIO_PIN_9, GPIO_PIN_SET))
-
-#define FLIP_RED_LED()						
-#define FLIP_GREEN_LED()					(HAL_GPIO_TogglePin(GPIOF, GPIO_PIN_10))
-#define FLIP_BLUE_LED()						
-#define FLIP_BEEP()							(HAL_GPIO_TogglePin(GPIOF, GPIO_PIN_9))
-#endif
-
-#if BOARD_STM32F413RH_DWLASER == 1
-#endif
-
-#else
-#define SET_RED_LED()						(HAL_GPIO_WritePin(GPIOF, GPIO_PIN_9, GPIO_PIN_SET))
-#define SET_GREEN_LED()						(HAL_GPIO_WritePin(GPIOF, GPIO_PIN_10, GPIO_PIN_SET))
-#define SET_BLUE_LED()						
-#define SET_BEEP()							(HAL_GPIO_WritePin(GPIOF, GPIO_PIN_8, GPIO_PIN_SET))
-
-#define RESET_RED_LED()						(HAL_GPIO_WritePin(GPIOF, GPIO_PIN_9, GPIO_PIN_RESET))
-#define RESET_GREEN_LED()					(HAL_GPIO_WritePin(GPIOF, GPIO_PIN_10, GPIO_PIN_RESET))
-#define RESET_BLUE_LED()					
-#define RESET_BEEP()						(HAL_GPIO_WritePin(GPIOF, GPIO_PIN_8, GPIO_PIN_RESET))
-
-#define FLIP_RED_LED()						(HAL_GPIO_TogglePin(GPIOF, GPIO_PIN_9))
-#define FLIP_GREEN_LED()					(HAL_GPIO_TogglePin(GPIOF, GPIO_PIN_10))
-#define FLIP_BLUE_LED()						
-#define FLIP_BEEP()							(HAL_GPIO_TogglePin(GPIOF, GPIO_PIN_8))
-#endif
+#define DEBUG_BOOTLOADER					0
 /*****************************************************************************/
+#define STM32_UNIQUE_ID_SIZE 				12//MCU序列号  8*12=96Bit
 #define BOOTLOADER_VER						0x00010001//版本
+#define APP_CHECKSUM_ADR					ADDR_FLASH_SECTOR_6//应用程序起始地址
 #define DEVID_H								'0'//设备ID
 #define DEVID_L								'A'//设备ID
 #define BUFFER_SIZE        					((uint16_t)512*32)//512的整数倍
-#define CONFIG_JUMP_DELAY					3000//检测U盘时间
+#define CONFIG_JUMP_DELAY					4000//检测U盘时间
 #define FATFS_ROOT							"0:"
+#define LOG_FIRMWARE_FILENAME				"/log.txt"//
 #define CFG_FIRMWARE_FILENAME				"/las.cfg"
 #define LBOT_FIRMWARE_FILENAME				"/ld_bot.bin"//更新BOT固件地址
 #define LMCU_FIRMWARE_FILENAME				"/ld_mcu.bin"//更新MCU固件地址
@@ -74,7 +24,14 @@
 #define SBOT_FIRMWARE_FILENAME				"/sv_bot.bin"//回读BOT固件地址
 #define SMCU_FIRMWARE_FILENAME				"/sv_mcu.bin"//回读MCU固件地址
 #define SLCD_FIRMWARE_FILENAME				"/sv_lcd.pkg"//回读LCD固件地址
-#define BOOTLOADER_ERASE_ENABLE				0//Bootloader擦除使能
+/*****************************************************************************/
+#define CONFIG_EPROM_SIZE 					CONFIG_AT24C256_SIZE
+#define	CONFIG_AT24C64_SIZE					8192
+#define	CONFIG_AT24C128_SIZE 				16384
+#define	CONFIG_AT24C256_SIZE 				32768
+#define CONFIG_EPROM_SLAVE_ADDR				0xA0//EPROM 从机地址
+#define CONFIG_EPROM_TIMEOUT				100//EPROM读写超时
+#define CONFIG_EPROM_PAGE_SIZE				0xFFFF//EPROM 页大小
 /*****************************************************************************/
 #define BT_STATE_IDLE						0//空闲
 #define BT_STATE_USBHOST_INIT				1//FATFS 初始化
@@ -115,15 +72,8 @@
 #define GDDC_LCD_NORMAL_BAUDRATE			(115200UL)//LCD串口屏正常波特率
 #define GDDC_LCD_UPDATE_BAUDRATE			(115200UL)//LCD串口屏更新波特率
 /*****************************************************************************/
-#if BOARD_STM32F413H_DISCO == 1
-#define GDDC_UART_HANDLE					huart1
+#define GDDC_UART_HANDLE					huart5
 #define GDDC_UART_IRQ						USART1_IRQn
-#endif
-#if BOARD_STM32F407_DEV == 1
-#define GDDC_UART_HANDLE					huart1
-#define GDDC_UART_IRQ						USART1_IRQn
-#endif
-
 #define GDDC_RX_BUF_SIZE					64
 #define GDDC_TX_BUF_SIZE					(2048 + 4)
 #define GDDC_HEX 							0
@@ -141,6 +91,47 @@
 #define EPROM_ADR							0xA0
 #define EPROM_SIZE							256
 /*****************************************************************************/
+#define SET_TEC(b)							HAL_GPIO_WritePin(TEC_OUT_GPIO_Port, TEC_OUT_Pin, b)
+#define FLIP_TEC()							HAL_GPIO_TogglePin(TEC_OUT_GPIO_Port, TEC_OUT_Pin)
+
+#define SET_FAN0(b)							HAL_GPIO_WritePin(FAN0_OUT_GPIO_Port, FAN0_OUT_Pin, b)
+#define FLIP_FAN0()							HAL_GPIO_TogglePin(FAN0_OUT_GPIO_Port, FAN0_OUT_Pin)
+
+#define SET_FAN1(b)							HAL_GPIO_WritePin(FAN1_OUT_GPIO_Port, FAN1_OUT_Pin, b)
+#define FLIP_FAN1()							HAL_GPIO_TogglePin(FAN1_OUT_GPIO_Port, FAN1_OUT_Pin)
+
+#define SET_LCD(b)							HAL_GPIO_WritePin(LCD_OUT_GPIO_Port, LCD_OUT_Pin, b)
+#define FLIP_LCD()							HAL_GPIO_WritePin(LCD_OUT_GPIO_Port, LCD_OUT_Pin, b)
+
+#define SET_LPA0(b)							HAL_GPIO_WritePin(LPA_PWM0_GPIO_Port, LPA_PWM0_Pin, b)
+#define FLIP_LPA0()							HAL_GPIO_TogglePin(LPA_PWM0_GPIO_Port, LPA_PWM0_Pin)
+
+#define SET_LPA1(b)							HAL_GPIO_WritePin(LPA_PWM1_GPIO_Port, LPA_PWM1_Pin, b)
+#define FLIP_LPA1()							HAL_GPIO_TogglePin(LPA_PWM1_GPIO_Port, LPA_PWM1_Pin)
+
+#define SET_LPB0(b)							HAL_GPIO_WritePin(LPB_PWM0_GPIO_Port, LPB_PWM0_Pin, b)
+#define FLIP_LPB0()							HAL_GPIO_TogglePin(LPB_PWM0_GPIO_Port, LPB_PWM0_Pin)
+
+#define SET_LPB1(b)							HAL_GPIO_WritePin(LPB_PWM1_GPIO_Port, LPB_PWM1_Pin, b)
+#define FLIP_LPB1()							HAL_GPIO_TogglePin(LPB_PWM1_GPIO_Port, LPB_PWM1_Pin)
+
+#define SET_LPC0(b)							HAL_GPIO_WritePin(LPC_PWM0_GPIO_Port, LPC_PWM0_Pin, b)
+#define FLIP_LPC0()							HAL_GPIO_TogglePin(LPC_PWM0_GPIO_Port, LPC_PWM0_Pin)
+
+#define SET_RED(b)							HAL_GPIO_WritePin(RED_OUT_GPIO_Port, RED_OUT_Pin, b)
+#define FLIP_RED()							HAL_GPIO_TogglePin(RED_OUT_GPIO_Port, RED_OUT_Pin)
+
+#define SET_GREEN(b)						HAL_GPIO_WritePin(GREEN_OUT_GPIO_Port, GREEN_OUT_Pin, b)
+#define FLIP_GREEN()						HAL_GPIO_TogglePin(GREEN_OUT_GPIO_Port, GREEN_OUT_Pin)
+
+#define SET_BLUE(b)							HAL_GPIO_WritePin(BLUE_OUT_GPIO_Port, BLUE_OUT_Pin, b)
+#define FLIP_BLUE()							HAL_GPIO_TogglePin(BLUE_OUT_GPIO_Port, BLUE_OUT_Pin)
+
+#define SET_AIM(b)							HAL_GPIO_WritePin(AIM_OUT_GPIO_Port, AIM_OUT_Pin, b)
+#define FLIP_AIM()							HAL_GPIO_TogglePin(AIM_OUT_GPIO_Port, AIM_OUT_Pin)
+/*****************************************************************************/
+static uint32_t	UniqueId[3];//处理器序列号 
+/*****************************************************************************/
 static uint32_t TmpReadSize = 0x00;
 static uint32_t RamAddress = 0x00;
 static __IO uint32_t LastPGAddress = APPLICATION_FLASH_START_ADDRESS;
@@ -150,9 +141,13 @@ static uint8_t gddcRxBuf[GDDC_RX_BUF_SIZE];//屏幕串口接收缓冲区
 static uint8_t gddcTxBuf[GDDC_TX_BUF_SIZE];//屏幕串口发送缓冲区
 /*****************************************************************************/
 extern I2C_HandleTypeDef hi2c1;
+extern UART_HandleTypeDef huart5;
+extern UART_HandleTypeDef huart1;
+extern USBH_HandleTypeDef hUsbHostFS;
 /*****************************************************************************/
 FRESULT retUsbH;
 FATFS	USBH_fatfs;
+FIL LogFile;//FATFS File Object 记录信息
 FIL CfgFile;//FATFS File Object 下载完成信息
 FIL McuFile;//FATFS File Object 单片机固件
 FIL LcdFile;//FATFS File Object 屏幕固件
@@ -166,10 +161,8 @@ uint32_t JumpAddress;
 pFunction Jump_To_Application;
 /*****************************************************************************/
 static void bootLoadFailHandler(uint8_t ftype);//引导故障程序
-static uint16_t updateMcuBot(void);
 static uint16_t updateMcuApp(void);
 static uint16_t updateLcdApp(void);
-static uint16_t checksumMcuBot(void);
 static uint16_t checksumMcuApp(void);
 static void checkBlank(uint32_t adr, uint32_t size);
 static void DBGU_Printk(uint8_t *buffer);
@@ -183,9 +176,22 @@ static void SystemClock_Reset(void);
 static void UsbGpioReset(void);
 static void clearFlashAndEprom(void);
 void clearEprom(void);
-/*****************************************************************************/
 void epromTest(void);
-
+/*****************************************************************************/
+void softDelayMs(uint16_t ms){
+	uint32_t i;
+	for(i = 0;i < 1000;i ++){
+		__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();
+	}
+}
+void readStm32UniqueID(void){//获取处理器唯一序列号        
+    UniqueId[0] = *(volatile uint32_t*)(0x1FFF7A10);
+    UniqueId[1] = *(volatile uint32_t*)(0x1FFF7A14);
+    UniqueId[2] = *(volatile uint32_t*)(0x1FFF7A18);
+}
+uint16_t cpuGetFlashSize(void){//获取处理器程序容量
+   return *(volatile uint16_t*)(0x1FFF7A22);
+}
 void resetInit(void){//复位后初始化
 	HAL_DeInit();
 	//复位RCC时钟
@@ -194,18 +200,126 @@ void resetInit(void){//复位后初始化
 	__enable_irq();
 }
 void bootLoadInit(void){//引导程序初始化
+	SET_FAN0(GPIO_PIN_SET);//打开5V风扇
+	SET_FAN1(GPIO_PIN_SET);//打开24V风扇
+	SET_LCD(GPIO_PIN_SET);//打开LCD供电
+	SET_TEC(GPIO_PIN_RESET);//关闭制冷
+	SET_LPA0(GPIO_PIN_RESET);//关闭所有激光
+	SET_LPA1(GPIO_PIN_RESET);
+	SET_LPB0(GPIO_PIN_RESET);
+	SET_LPB1(GPIO_PIN_RESET);
+	SET_LPC0(GPIO_PIN_RESET);
+	SET_RED(GPIO_PIN_RESET);//设置R LED亮度
+	SET_GREEN(GPIO_PIN_RESET);//设置G LED亮度
+	SET_BLUE(GPIO_PIN_RESET);//设置B LED亮度
+	SET_AIM(GPIO_PIN_RESET);
+	SET_RED(GPIO_PIN_SET);//设置R LED亮度
+	SET_GREEN(GPIO_PIN_RESET);//设置G LED亮度
+	SET_BLUE(GPIO_PIN_RESET);//设置B LED亮度
+	HAL_Delay(100);
+	SET_BLUE(GPIO_PIN_SET);//设置B LED亮度
+	SET_RED(GPIO_PIN_RESET);//设置R LED亮度
+	SET_GREEN(GPIO_PIN_RESET);//设置G LED亮度
+	HAL_Delay(100);
+	SET_BLUE(GPIO_PIN_RESET);//设置B LED亮度
+	SET_RED(GPIO_PIN_RESET);//设置R LED亮度
+	SET_GREEN(GPIO_PIN_SET);//设置G LED亮度
 	overTime = HAL_GetTick() + CONFIG_JUMP_DELAY;
 	releaseTime0 = 0;
 	releaseTime1 = 0;
 	usbReady = FALSE;
 	bootLoadState = BT_STATE_IDLE; 
-	RESET_RED_LED();
-	RESET_GREEN_LED();
-	RESET_BLUE_LED();
-	RESET_BEEP();
-	SET_BEEP();
-	HAL_Delay(200);
-	RESET_BEEP();
+	printf("\r\n");
+	printf("\r\n");
+	printf("\r\n");   
+	//显示输入IO状态
+	if(HAL_GPIO_ReadPin(PWR_KEY_GPIO_Port, PWR_KEY_Pin) == GPIO_PIN_SET){
+		printf("Bootloader:INPUT->PWR_ON        = Open!\n");
+	}
+	else{
+		printf("Bootloader:INPUT->PWR_ON        = Close!\n");
+	}
+	if(HAL_GPIO_ReadPin(FSWITCH_NC_GPIO_Port, FSWITCH_NC_Pin) == GPIO_PIN_SET){
+		printf("Bootloader:INPUT->FSWITCH_NC    = Open!\n");
+	}
+	else{
+		printf("Bootloader:INPUT->FSWITCH_NC    = Close!\n");
+	}
+	if(HAL_GPIO_ReadPin(FSWITCH_NO_GPIO_Port, FSWITCH_NO_Pin) == GPIO_PIN_SET){
+		printf("Bootloader:INPUT->FSWITCH_NO    = Open!\n");
+	}
+	else{
+		printf("Bootloader:INPUT->FSWITCH_NO    = Close!\n");
+	}
+	if(HAL_GPIO_ReadPin(ESTOP_IN_GPIO_Port, ESTOP_IN_Pin) == GPIO_PIN_SET){
+		printf("Bootloader:INPUT->ESTOP         = Close!\n");
+	}
+	else{
+		printf("Bootloader:INPUT->ESTOP         = Open!\n");
+	}
+	if(HAL_GPIO_ReadPin(INTLOCK_IN_GPIO_Port, INTLOCK_IN_Pin) == GPIO_PIN_SET){
+		printf("Bootloader:INPUT->INTLOCK       = Open!\n");
+	}
+	else{
+		printf("Bootloader:INPUT->INTLOCK       = Close!\n");
+	}
+	if(HAL_GPIO_ReadPin(PM_ALARM_GPIO_Port, PM_ALARM_Pin) == GPIO_PIN_SET){//PM_ALARM
+		printf("Bootloader:INPUT->PM_ALARM      = High!\n");
+	}
+	else{
+		printf("Bootloader:INPUT->PM_ALARM      = Low!\n");
+	}
+	//显示输出IO状态
+	if(HAL_GPIO_ReadPin(LPA_PWM0_GPIO_Port, LPA_PWM0_Pin) == GPIO_PIN_SET){//LPA_PWM0
+		printf("Bootloader:OUTPUT->LPA_PWM0     = High!\n");
+	}
+	else{
+		printf("Bootloader:OUTPUT->LPA_PWM0     = Low!\n");
+	}
+	if(HAL_GPIO_ReadPin(LPA_PWM1_GPIO_Port, LPA_PWM1_Pin) == GPIO_PIN_SET){//LPA_PWM1
+		printf("Bootloader:OUTPUT->LPA_PWM1     = High!\n");
+	}
+	else{
+		printf("Bootloader:OUTPUT->LPA_PWM1     = Low!\n");
+	}
+	if(HAL_GPIO_ReadPin(LPB_PWM0_GPIO_Port, LPB_PWM0_Pin) == GPIO_PIN_SET){//LPB_PWM0
+		printf("Bootloader:OUTPUT->LPB_PWM0     = High!\n");
+	}
+	else{
+		printf("Bootloader:OUTPUT->LPB_PWM0     = Low!\n");
+	}
+	if(HAL_GPIO_ReadPin(LPA_PWM1_GPIO_Port, LPA_PWM1_Pin) == GPIO_PIN_SET){//LPB_PWM1
+		printf("Bootloader:OUTPUT->LPA_PWM1     = High!\n");
+	}
+	else{
+		printf("Bootloader:OUTPUT->LPA_PWM1     = Low!\n");
+	}
+	if(HAL_GPIO_ReadPin(LPC_PWM0_GPIO_Port, LPC_PWM0_Pin) == GPIO_PIN_SET){//LPC_PWM0
+		printf("Bootloader:OUTPUT->LPC_PWM0     = High!\n");
+	}
+	else{
+		printf("Bootloader:OUTPUT->LPC_PWM0     = Low!\n");
+	}
+	if(HAL_GPIO_ReadPin(FAN0_OUT_GPIO_Port, FAN0_OUT_Pin) == GPIO_PIN_SET){//FAN
+		printf("Bootloader:OUTPUT->FAN0_OUT     = High!\n");
+	}
+	else{
+		printf("Bootloader:OUTPUT->FAN0_OUT     = Low!\n");
+	}
+	if(HAL_GPIO_ReadPin(FAN1_OUT_GPIO_Port, FAN1_OUT_Pin) == GPIO_PIN_SET){//FAN
+		printf("Bootloader:OUTPUT->FAN1_OUT     = High!\n");
+	}
+	else{
+		printf("Bootloader:OUTPUT->FAN1_OUT     = Low!\n");
+	}
+	if(HAL_GPIO_ReadPin(TEC_OUT_GPIO_Port, TEC_OUT_Pin) == GPIO_PIN_SET){//TEC
+		printf("Bootloader:OUTPUT->TEC_OUT      = High!\n");
+	}
+	else{
+		printf("Bootloader:OUTPUT->TEC_OUT      = Low!\n");
+	}
+	HAL_Delay(10);
+	
 }
 void bootLoadProcess(void){//bootload 执行程序
 	uint8_t fileBuff[64];
@@ -214,13 +328,17 @@ void bootLoadProcess(void){//bootload 执行程序
 	uint32_t bwByte;//实际写入的字节数
 	//注册一个FATFS文件系统
 	switch(bootLoadState){
-		case BT_STATE_IDLE:{//开机等待U盘识别
-			printf("\r\n");
-			printf("\r\n");
-			printf("\r\n");                                
+		case BT_STATE_IDLE:{//开机等待U盘识别                             
 			printf("Bootloader:Start...............\n");
-			printf("Bootloader:Ver:0x%08X Build:%s:%s\r\n", BOOTLOADER_VER, __DATE__, __TIME__);
-			bootLoadState = BT_STATE_USBHOST_INIT;
+			readStm32UniqueID();
+			printf("Bootloader:UniqueID->0x%08X%08X%08X\n", UniqueId[0], UniqueId[1], UniqueId[2]);
+			printf("Bootloader:Ver:0x%08X Build:%s:%s\n", BOOTLOADER_VER, __DATE__, __TIME__);
+			if(HAL_GPIO_ReadPin(INTLOCK_IN_GPIO_Port, INTLOCK_IN_Pin) == GPIO_PIN_SET){//安全连锁未插入
+				bootLoadState = BT_STATE_USBHOST_INIT;//进入USB更新APP流程
+			}
+			else{//安全连锁插入
+				bootLoadState = BT_STATE_RUN_APP;//进入运行APP流程
+			}
 			break;
 		}
 		case BT_STATE_USBHOST_INIT:{//在USB HOST上挂载FATFS
@@ -241,6 +359,26 @@ void bootLoadProcess(void){//bootload 执行程序
 			if(releaseTime0 != releaseTime1){
 				printf("Bootloader:Wait usb disk init:%d Second!\n", releaseTime0);
 				releaseTime1 = releaseTime0;
+				if(releaseTime0 == 3){
+					SET_GREEN(GPIO_PIN_RESET);
+					SET_BLUE(GPIO_PIN_RESET);
+					SET_RED(GPIO_PIN_SET);
+				}
+				else if(releaseTime0 == 2){
+					SET_RED(GPIO_PIN_RESET);
+					SET_BLUE(GPIO_PIN_RESET);
+					SET_GREEN(GPIO_PIN_SET);
+				}
+				else if(releaseTime0 == 1){
+					SET_RED(GPIO_PIN_RESET);
+					SET_GREEN(GPIO_PIN_RESET);
+					SET_BLUE(GPIO_PIN_SET);
+				}
+				else if(releaseTime0 == 0){
+					SET_RED(GPIO_PIN_RESET);//设置R LED亮度
+					SET_GREEN(GPIO_PIN_RESET);//设置G LED亮度
+					SET_BLUE(GPIO_PIN_RESET);//设置B LED亮度
+				}
 			} 
 			if(releaseTime0 <= 0){
 				bootLoadState = BT_STATE_READ_CFG;
@@ -264,17 +402,10 @@ void bootLoadProcess(void){//bootload 执行程序
 				if((retUsbH != FR_OK) || (brByte < 5)){//读取文件开头4个字节
 					bootLoadFailHandler(BT_FAIL_READ_CFG);//读取CFG错误
 				}
-				if(fileBuff[0] == 'U' && fileBuff[1] == '0' && fileBuff[2] == '1'){//U01 更新引导
+				if(fileBuff[0] == 'U' && fileBuff[1] == '0' && fileBuff[2] == '1'){//U01 更新 应用
 					if(fileBuff[3] == DEVID_L && fileBuff[4] == DEVID_H){//设备匹配
-						printf("Bootloader:Upgrade mcu bootloader!\n");
-						bootLoadState = BT_STATE_UPDATE_MCU_BOT;
-					}
-					else{
-						bootLoadState = BT_STATE_RUN_APP;
-					}
-				}		
-				else if(fileBuff[0] == 'U' && fileBuff[1] == '0' && fileBuff[2] == '2'){//U02 更新 应用
-					if(fileBuff[3] == DEVID_L && fileBuff[4] == DEVID_H){//设备匹配
+						//创建记录文件
+						retUsbH = f_open(&LogFile, LOG_FIRMWARE_FILENAME, FA_CREATE_ALWAYS | FA_WRITE);//读取完成信息文件
 						printf("Bootloader:Upgrade mcu application!\n");
 						bootLoadState = BT_STATE_UPDATE_MCU_APP;
 					}
@@ -282,7 +413,7 @@ void bootLoadProcess(void){//bootload 执行程序
 						bootLoadState = BT_STATE_RUN_APP;
 					}
 				}
-				else if(fileBuff[0] == 'U' && fileBuff[1] == '0' && fileBuff[2] == '3'){//U03 更新 触摸屏
+				else if(fileBuff[0] == 'U' && fileBuff[1] == '0' && fileBuff[2] == '2'){//U02 更新 触摸屏
 					if(fileBuff[3] == DEVID_L && fileBuff[4] == DEVID_H){//设备匹配
 						printf("Bootloader:Upgrade lcd application!\n");
 						bootLoadState = BT_STATE_UPDATE_LCD_APP;
@@ -291,7 +422,7 @@ void bootLoadProcess(void){//bootload 执行程序
 						bootLoadState = BT_STATE_RUN_APP;
 					}
 				}
-				else if(fileBuff[0] == 'U' && fileBuff[1] == '0' && fileBuff[2] == '4'){//U04 更新 应用 触摸屏
+				else if(fileBuff[0] == 'U' && fileBuff[1] == '0' && fileBuff[2] == '3'){//U03 更新 应用&触摸屏
 					if(fileBuff[3] == DEVID_L && fileBuff[4] == DEVID_H){//设备匹配
 						printf("Bootloader:Upgrade mcu application & lcd application!\n");
 						bootLoadState = BT_STATE_UPDATE_BOTH_APP;
@@ -300,16 +431,7 @@ void bootLoadProcess(void){//bootload 执行程序
 						bootLoadState = BT_STATE_RUN_APP;
 					}
 				}
-				else if(fileBuff[0] == 'U' && fileBuff[1] == '0' && fileBuff[2] == '5'){//U05 更新引导 应用 触摸屏
-					if(fileBuff[3] == DEVID_L && fileBuff[4] == DEVID_H){//设备匹配
-						printf("Bootloader:Upgrade bootloader,mcu application,lcd application!\n");
-						bootLoadState = BT_STATE_UPDATE_ALL;
-					}
-					else{
-						bootLoadState = BT_STATE_RUN_APP;
-					}
-				}
-				else if(fileBuff[0] == 'U' && fileBuff[1] == '0' && fileBuff[2] == 'F'){//U05 Clear 剩余FLASH区域和EEPROM
+				else if(fileBuff[0] == 'U' && fileBuff[1] == '0' && fileBuff[2] == 'F'){//U0F 擦除剩余FLASH区域和EEPROM
 					if(fileBuff[3] == DEVID_L && fileBuff[4] == DEVID_H){//设备匹配
 						printf("Bootloader:Clear mcu app flash & eprom!\n");
 						bootLoadState = BT_STATE_CLEAR_FLASH;
@@ -322,35 +444,6 @@ void bootLoadProcess(void){//bootload 执行程序
 					bootLoadState = BT_STATE_RUN_APP;
 				}
 			}
-			break;
-		}
-		case BT_STATE_UPDATE_MCU_BOT:{
-#if BOOTLOADER_ERASE_ENABLE == 1
-			crcUdisk = updateMcuBot();
-			crcFlash = checksumMcuBot();
-			if(crcUdisk != crcFlash){
-				bootLoadFailHandler(BT_FAIL_CHECKSUM_MCU_BOT_FLASH);
-			}
-			else{
-				printf("Bootloader:Checksum bootloader sucess.\n");
-			}
-#endif
-#if DEBUG_BOOTLOADER != 1
-			fileBuff[0] = 'U';
-			fileBuff[1] = '1';
-			fileBuff[2] = '1';
-#else
-			fileBuff[0] = 'U';
-			fileBuff[1] = '0';
-			fileBuff[2] = '1';		
-#endif
-			bwByte = 0;
-			f_lseek(&CfgFile, 0);//读取指针移动到开头
-			if(f_write(&CfgFile, fileBuff, 3, (void *)&bwByte) != FR_OK){
-				bootLoadFailHandler(BT_FAIL_WRITE_CFG);
-			}
-			f_close(&CfgFile);
-			bootLoadState = BT_STATE_RESET;
 			break;
 		}
 		case BT_STATE_UPDATE_MCU_APP:{//更新ld_mcu.bin
@@ -366,11 +459,11 @@ void bootLoadProcess(void){//bootload 执行程序
 #if DEBUG_BOOTLOADER != 1
 			fileBuff[0] = 'U';
 			fileBuff[1] = '1';
-			fileBuff[2] = '2';
+			fileBuff[2] = '1';
 #else
 			fileBuff[0] = 'U';
 			fileBuff[1] = '0';
-			fileBuff[2] = '2';
+			fileBuff[2] = '1';
 #endif
 			bwByte = 0;
 			f_lseek(&CfgFile, 0);//读取指针移动到开头
@@ -386,11 +479,11 @@ void bootLoadProcess(void){//bootload 执行程序
 #if DEBUG_BOOTLOADER != 1
 			fileBuff[0] = 'U';
 			fileBuff[1] = '1';
-			fileBuff[2] = '3';
+			fileBuff[2] = '2';
 #else
 			fileBuff[0] = 'U';
 			fileBuff[1] = '0';
-			fileBuff[2] = '3';
+			fileBuff[2] = '2';
 #endif
 			bwByte = 0;
 			f_lseek(&CfgFile, 0);//读取指针移动到开头
@@ -413,43 +506,11 @@ void bootLoadProcess(void){//bootload 执行程序
 #if DEBUG_BOOTLOADER != 1
 			fileBuff[0] = 'U';
 			fileBuff[1] = '1';
-			fileBuff[2] = '4';
+			fileBuff[2] = '3';
 #else
 			fileBuff[0] = 'U';
 			fileBuff[1] = '0';
-			fileBuff[2] = '4';
-#endif
-			bwByte = 0;
-			f_lseek(&CfgFile, 0);//读取指针移动到开头
-			if(f_write(&CfgFile, fileBuff, 3, (void *)&bwByte) != FR_OK){
-				bootLoadFailHandler(BT_FAIL_WRITE_CFG);
-			}
-			f_close(&CfgFile);
-			bootLoadState = BT_STATE_RESET;
-			break;
-		}
-		case BT_STATE_UPDATE_ALL:{
-			crcUdisk = updateMcuBot();
-			crcFlash = checksumMcuBot();
-			if(crcUdisk != crcFlash){
-				bootLoadFailHandler(BT_FAIL_CHECKSUM_MCU_BOT_FLASH);
-			}
-			crcUdisk = updateMcuApp();
-			crcFlash = checksumMcuApp();
-			if(crcUdisk != crcFlash){
-				bootLoadFailHandler(BT_FAIL_LMCU_APP_CHECK);
-			}
-			clearEprom();
-			updateLcdApp();
-#if DEBUG_BOOTLOADER != 1
-			fileBuff[0] = 'U';
-			fileBuff[1] = '1';
-			fileBuff[2] = '5';
-#else
-			fileBuff[0] = 'U';
-			fileBuff[1] = '0';
-			fileBuff[2] = '5';
-			
+			fileBuff[2] = '3';
 #endif
 			bwByte = 0;
 			f_lseek(&CfgFile, 0);//读取指针移动到开头
@@ -471,23 +532,34 @@ void bootLoadProcess(void){//bootload 执行程序
 			break;
 		}
 		case BT_STATE_RUN_APP:{
+			HAL_FLASH_Lock();//锁定FLASH
 			/* Check Vector Table: Test if user code is programmed starting from* address "APPLICATION_ADDRESS" */
 			if((((*(__IO uint32_t *) APPLICATION_FLASH_START_ADDRESS) & 0xFF000000) == 0x20000000) || (((*(__IO uint32_t *) APPLICATION_FLASH_START_ADDRESS) & 0xFF000000) == 0x10000000)){
 				/* Jump to user application */
 				printf("Bootloader:Jump application address.\n");
-				printf("Bootloader:First word:0x%XH\n",(*(uint32_t*)APPLICATION_FLASH_START_ADDRESS));
 				JumpAddress = *(__IO uint32_t *) (APPLICATION_FLASH_START_ADDRESS + 4);
+				printf("Bootloader:Jump Address:0x%X\n", JumpAddress);
 				Jump_To_Application = (pFunction) JumpAddress;
 				/* Initialize user application's Stack Pointer */
 				__set_MSP(*(__IO uint32_t *) APPLICATION_FLASH_START_ADDRESS);
-				SysTick->CTRL = 0;//关键代码
-				HAL_DeInit();                                    
-				HAL_NVIC_DisableIRQ(SysTick_IRQn); 
-				HAL_NVIC_DisableIRQ(OTG_FS_IRQn);				
-				HAL_NVIC_ClearPendingIRQ(SysTick_IRQn);           //可选
-				HAL_NVIC_ClearPendingIRQ(OTG_FS_IRQn);
+				printf("Bootloader:Stack Pointer:0x%X\n", *(__IO uint32_t *) APPLICATION_FLASH_START_ADDRESS);
 				__disable_irq();
-				HAL_FLASH_Lock();//锁定FLASH
+				SysTick->CTRL = 0;//关键代码
+				//关闭中断                                    				
+				HAL_NVIC_DisableIRQ(SysTick_IRQn); 
+				HAL_NVIC_DisableIRQ(OTG_FS_IRQn);
+				HAL_NVIC_DisableIRQ(TIM6_DAC_IRQn);
+				HAL_NVIC_ClearPendingIRQ(SysTick_IRQn);
+				HAL_NVIC_ClearPendingIRQ(OTG_FS_IRQn);
+				HAL_NVIC_ClearPendingIRQ(TIM6_DAC_IRQn);
+				//取消外设配置
+				//HAL_DeInit();
+				//HAL_I2C_MspDeInit(&hi2c1);
+				//HAL_UART_MspDeInit(&huart1);
+				//HAL_UART_MspDeInit(&huart5);
+				//USBH_DeInit(&hUsbHostFS);
+				//SystemClock_Reset();//复位RCC时钟
+				//UsbGpioReset();
 				Jump_To_Application();
 			}
 			bootLoadFailHandler(BT_FAIL_VECTOR_TABLE_INVALID);
@@ -500,251 +572,251 @@ static void beepDiag(uint8_t diag){//蜂鸣器诊断声音 摩尔斯电码
 	switch(diag){
 		case '0':{
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);
 			break;
 		}
 		case '1':{
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);
 			break;
 		};
 		case '2':{
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);
 			break;
 		};
 		case '3':{
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP(); HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);
 			break;
 		}
 		case '4':{
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);
 			break;
 		}
 		case '5':{
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);
 			break;
 		}
 		case '6':{
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);
 			break;
 		}
 		case '7':{	
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);
 			break;
 		}
 		case '8':{
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);
 			break;
 		}
 		case '9':{
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);
 			break;
 		}
 		case 'A':{
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);
 			break;
 		}
 		case 'B':{
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);
 			break;			
 		}
 		case 'C':{
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);
 			break;
 		}
 		case 'D':{
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);
 			break;
 		}
 		case 'E':{
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);
 			break;
 		}
 		case 'F':{
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);
 			break;
 		}
 		case 'G':{
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);
 			break;
 		}
 		case 'H':{
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);
 			break;			
 		}
 		case 'I':{
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);
 			break;
 		}
 		case 'J':{
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);
 			break;
 		}
 		case 'K':{
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);
 			break;
 		}
 		case 'L':{//．━ ．．
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//.
-			SET_BEEP();HAL_Delay(MORSECODE_SHORT_TIME);RESET_BEEP();
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_SHORT_TIME);SET_RED(GPIO_PIN_RESET);
 			break;
 		}
 		case 'M':{//━ ━
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();HAL_Delay(MORSECODE_SPACE_TIME);
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);HAL_Delay(MORSECODE_SPACE_TIME);
 			//-
-			SET_BEEP();HAL_Delay(MORSECODE_LONG_TIME);RESET_BEEP();
+			SET_RED(GPIO_PIN_SET);HAL_Delay(MORSECODE_LONG_TIME);SET_RED(GPIO_PIN_RESET);
 			break;
 		}
 		default:break;
@@ -753,8 +825,9 @@ static void beepDiag(uint8_t diag){//蜂鸣器诊断声音 摩尔斯电码
 }
 static void bootLoadFailHandler(uint8_t ftype){//引导错误程序
 	MX_DriverVbusFS(FALSE);//关闭USB VBUS
-	//点亮红灯
-	SET_RED_LED();
+	SET_GREEN(GPIO_PIN_RESET);
+	SET_BLUE(GPIO_PIN_RESET);
+	SET_RED(GPIO_PIN_RESET);
 	switch(ftype){
 		case BT_FAIL_READ_CFG:{//从U盘读取CFG失败
 			printf("Bootloader:FailHandler,Read %s fail!.\n", CFG_FIRMWARE_FILENAME);
@@ -882,44 +955,20 @@ static void bootLoadFailHandler(uint8_t ftype){//引导错误程序
 	}
 }
 static void clearFlashAndEprom(void){
-	RESET_GREEN_LED();
-	RESET_RED_LED();
-	SET_BLUE_LED();
+	SET_GREEN(GPIO_PIN_RESET);
+	SET_RED(GPIO_PIN_RESET);
+	SET_BLUE(GPIO_PIN_SET);
 	HAL_FLASH_Unlock();
 	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_BSY|FLASH_FLAG_EOP|FLASH_FLAG_PGSERR|FLASH_FLAG_WRPERR);
 	if (FLASH_If_EraseApplication() != 0x00){//擦除APP FLASH区域失败
 		bootLoadFailHandler(BT_FAIL_ERASE_MCU_APP);
 	}
 	checkBlank(APPLICATION_FLASH_START_ADDRESS, APPLICATION_FLASH_SIZE);//FLASH 查空
-	SET_GREEN_LED();
-	RESET_RED_LED();
-	RESET_BLUE_LED();
+	SET_GREEN(GPIO_PIN_SET);
+	SET_RED(GPIO_PIN_RESET);
+	SET_BLUE(GPIO_PIN_RESET);
 	clearEprom();
 	bootLoadFailHandler(BT_FAIL_CLEAR_DONE);
-}
-static uint16_t updateMcuBot(void){//更新MCU BOOTLOADER
-	retUsbH = f_open(&BotFile, LBOT_FIRMWARE_FILENAME, FA_OPEN_EXISTING | FA_READ);
-	if(retUsbH != FR_OK){//读取失败
-		bootLoadFailHandler(BT_FAIL_READ_LMCU_BOT);			
-	}
-	printf("Bootloader:Open %s sucess,ECODE=0x%02XH.\n", LMCU_FIRMWARE_FILENAME, retUsbH);
-	if(f_size(&McuFile) > BOOTLOADER_FLASH_SIZE){//MCU固件大于FLSAH容量
-		bootLoadFailHandler(BT_FAIL_LMCU_BOT_CHECK);
-	}
-	RESET_GREEN_LED();
-	RESET_RED_LED();
-	SET_BLUE_LED();
-	if (FLASH_If_EraseBootloader() != 0x00){//擦除APP FLASH区域失败
-		bootLoadFailHandler(BT_FAIL_ERASE_MCU_APP);
-	}
-	checkBlank(BOOTLOADER_FLASH_START_ADDRESS, BOOTLOADER_FLASH_SIZE);//FLASH 查空
-	printf("Bootloader:Erase mcu bootload sucess.\n");
-	SET_GREEN_LED();
-	RESET_RED_LED();
-	RESET_BLUE_LED();
-	printf("Bootloader:Write bootload finish.\n");
-	f_close(&BotFile);
-	return 0;
 }
 static uint16_t updateMcuApp(void){//更新MCU APP
 	uint16_t crc16;
@@ -935,9 +984,9 @@ static uint16_t updateMcuApp(void){//更新MCU APP
 	if(f_size(&McuFile) > APPLICATION_FLASH_SIZE){//MCU固件大于FLSAH容量
 		bootLoadFailHandler(BT_FAIL_LMCU_APP_CHECK);
 	}
-	RESET_GREEN_LED();
-	RESET_RED_LED();
-	SET_BLUE_LED();
+	SET_GREEN(GPIO_PIN_RESET);
+	SET_RED(GPIO_PIN_RESET);
+	SET_BLUE(GPIO_PIN_SET);
 	HAL_FLASH_Unlock();
 	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_BSY|FLASH_FLAG_EOP|FLASH_FLAG_PGSERR|FLASH_FLAG_WRPERR);
 	if (FLASH_If_EraseApplication() != 0x00){//擦除APP FLASH区域失败
@@ -945,9 +994,9 @@ static uint16_t updateMcuApp(void){//更新MCU APP
 	}
 	checkBlank(APPLICATION_FLASH_START_ADDRESS, APPLICATION_FLASH_SIZE);//FLASH 查空
 	printf("Bootloader:Erase mcu application sucess.\n");
-	SET_GREEN_LED();
-	RESET_RED_LED();
-	RESET_BLUE_LED();
+	SET_GREEN(GPIO_PIN_RESET);
+	SET_RED(GPIO_PIN_RESET);
+	SET_BLUE(GPIO_PIN_RESET);
 	printf("Bootloader:Erase mcu app sucess.\n");
 	RamAddress = (uint32_t)&RAM_Buf;//获取RAM缓存区地址
 	/* Erase address init */
@@ -966,7 +1015,7 @@ static uint16_t updateMcuApp(void){//更新MCU APP
 			readflag = FALSE;
 		}
 		/* Program flash memory */
-		FLIP_GREEN_LED();//绿灯
+		FLIP_GREEN();//绿灯
 		for(programcounter = 0; programcounter < TmpReadSize; programcounter += 4){
 			/* Write word into flash memory */
 			if(FLASH_If_Write((LastPGAddress + programcounter), *(uint32_t *) (RamAddress + programcounter)) != 0x00){
@@ -982,7 +1031,7 @@ static uint16_t updateMcuApp(void){//更新MCU APP
 	HAL_FLASH_Lock();
 	printf("Bootloader:Write mcu app finish.\n");
 	f_close(&McuFile);
-	SET_GREEN_LED();
+	SET_GREEN(GPIO_PIN_SET);
 	return crc16;
 }
 
@@ -1013,7 +1062,7 @@ static uint16_t updateLcdApp(void){//更新LCD APP
 	retUsbH = f_open(&LcdFile, LLCD_FIRMWARE_FILENAME, FA_OPEN_EXISTING | FA_READ);
 	if(retUsbH != FR_OK){//读取失败
 		bootLoadFailHandler(BT_FAIL_READ_LLCD_APP);
-	}	
+	}
 	printf("Bootloader:Open %s sucess,ECODE=0x%02XH.\n", LLCD_FIRMWARE_FILENAME, retUsbH);
 	for(baudrateSelect = 0; baudrateSelect < (sizeof(baudrateTable) / 4); baudrateSelect ++){//波特率测试，握手		
 		if(baudrateSelect >= (sizeof(baudrateTable) / 4)){
@@ -1041,7 +1090,6 @@ static uint16_t updateLcdApp(void){//更新LCD APP
 			printf("Bootloader->updateLcdApp:Received cmdSnakeBack,set lcd serial baudrate %d.\n", baudrateTable[baudrateSelect]);
 			break;
 		}
-
 	}
 	dp_display_text_num(preCmd, sizeof(preCmd));
 	retUsbH = f_open(&LcdFile, LLCD_FIRMWARE_FILENAME, FA_OPEN_EXISTING | FA_READ);
@@ -1151,14 +1199,12 @@ static uint16_t updateLcdApp(void){//更新LCD APP
 	f_close(&LcdFile);
 	return crc16;
 }
-
 static void DBGU_Printk(uint8_t *buffer){//arg pointer to a string ending by
 	while(*buffer != '\0'){
 		HAL_UART_Transmit(&GDDC_UART_HANDLE, buffer, 1, GDDC_TX_TIMEOUT);
 		buffer ++;
     }
 }
-
 static void DBGU_Printk_num(uint8_t *buffer, uint16_t datanum){//arg pointer to a string ending by
     while(datanum != 0){
 		HAL_UART_Transmit(&GDDC_UART_HANDLE, buffer, 1, GDDC_TX_TIMEOUT);
@@ -1221,18 +1267,6 @@ static void checkBlank(uint32_t adr, uint32_t size){//Flash 查空
 		}
 	}
 }
-static uint16_t checksumMcuBot(void){//计算MCU BOT CRC16
-	uint8_t val;
-	uint32_t i;
-	uint16_t crc16;
-	crc16 = 0;
-	crc16Clear();
-	for(i = BOOTLOADER_FLASH_START_ADDRESS;i < BOOTLOADER_FLASH_SIZE;i ++){
-		val = *(__IO uint8_t*)(i);
-		crc16 = crc16CalculateAdd(val);//CRC16计算连续字节
-	}
-	return crc16;	
-}
 static uint16_t checksumMcuApp(void){//计算MCU APP CRC32
 	uint8_t val;
 	uint32_t i;
@@ -1256,15 +1290,13 @@ static void UsbGpioReset(void){//模拟USB拔插动作并关闭VBUS供电
 	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-						
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_RESET);                                            
-	HAL_Delay(65);
+	softDelayMs(100);
 	//先把PA12拉低再拉高，利用D+模拟USB的拔插动作   
 	HAL_GPIO_WritePin(GPIOA, GPIO_PIN_12, GPIO_PIN_SET);
-	HAL_Delay(65);
+	softDelayMs(100);
 	HAL_GPIO_DeInit(GPIOA, GPIO_PIN_12);
 	__HAL_RCC_GPIOA_CLK_DISABLE();
-	
 	__HAL_RCC_GPIOG_CLK_ENABLE();
 	HAL_GPIO_WritePin(GPIOG,GPIO_PIN_8, GPIO_PIN_RESET);
 	GPIO_InitStruct.Pin = GPIO_PIN_8;
@@ -1272,15 +1304,13 @@ static void UsbGpioReset(void){//模拟USB拔插动作并关闭VBUS供电
 	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
 	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
 	HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
-	HAL_Delay(1000);//等待100mS
+	softDelayMs(200);
 	HAL_GPIO_DeInit(GPIOG, GPIO_PIN_12);
-	__HAL_RCC_GPIOG_CLK_DISABLE();
-	
+	__HAL_RCC_GPIOG_CLK_DISABLE();	
 	__HAL_RCC_USB_OTG_FS_CLK_DISABLE();//关闭USB时钟
 	HAL_NVIC_DisableIRQ(OTG_FS_IRQn);//关闭USB 中断
 	HAL_NVIC_ClearPendingIRQ(OTG_FS_IRQn);//清楚 USB 中断标志
 }
-
 static void SystemClock_Reset(void){
 	RCC_OscInitTypeDef RCC_OscInitStruct = {0};
 	RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
@@ -1288,13 +1318,11 @@ static void SystemClock_Reset(void){
 	__HAL_RCC_BACKUPRESET_FORCE();
 	__HAL_RCC_PLL_DISABLE();
 	__HAL_RCC_HSI_DISABLE();
-	/** Configure the main internal regulator output voltage 
-	*/
+	/** Configure the main internal regulator output voltage */
 	__HAL_RCC_PWR_CLK_DISABLE();
 	__HAL_RCC_PWR_CLK_ENABLE();
 	__HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
-	/** Initializes the CPU, AHB and APB busses clocks 
-	*/
+	/** Initializes the CPU, AHB and APB busses clocks */
 	RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI;
 	RCC_OscInitStruct.HSIState = RCC_HSI_ON;
 	RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
@@ -1302,63 +1330,72 @@ static void SystemClock_Reset(void){
 	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK){
 		Error_Handler();
 	}
-	/** Initializes the CPU, AHB and APB busses clocks 
-	*/
-	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-							  |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+	/** Initializes the CPU, AHB and APB busses clocks */
+	RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
 	RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_HSI;
 	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
 	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
 	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
-
 	if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK){
 		Error_Handler();
 	}
 }
-
-
-HAL_StatusTypeDef EEPROM_WriteData(uint16_t MemAddress, uint8_t *pData, uint16_t Size){
-	uint16_t i;
-	HAL_StatusTypeDef sta;
-	for(i = 0;i < Size;i ++){
-		MemAddress += i;
-		sta = HAL_I2C_Mem_Write(&hi2c1, EPROM_ADR, MemAddress, I2C_MEMADD_SIZE_8BIT, &pData[i], 1, 200);
-		if(sta != HAL_OK){
-			return sta;
-		}
-		HAL_Delay(1);
+/*****************************************************************************/
+HAL_StatusTypeDef epromWriteByte(uint16_t WriteAddr, uint8_t wdat){//在指定地址写入8位数据
+//WriteAddr  :写入数据的目的地址    
+//DataToWrite:要写入的数据				   	  	    																 
+	HAL_StatusTypeDef ret;
+	if(WriteAddr > (CONFIG_EPROM_SIZE - 1)){//写地址超过容量
+		ret = HAL_ERROR;
+		printf("Bootloader:Eprom write address invalid!\n");
+		return ret;
 	}
-	return sta;
-}
-
-HAL_StatusTypeDef EEPROM_ReadData(uint16_t MemAddress, uint8_t *pData, uint16_t Size){
-	uint16_t i;
-	HAL_StatusTypeDef sta;
-	for(i = 0;i < Size;i ++){
-		MemAddress += i;
-		sta = HAL_I2C_Mem_Read(&hi2c1, EPROM_ADR, MemAddress,I2C_MEMADD_SIZE_8BIT, &pData[i], 1, 200);
-		if(sta != HAL_OK){
-			return sta;
-		}
-		HAL_Delay(10);
+	ret = HAL_I2C_Mem_Write(&hi2c1, 
+	                        CONFIG_EPROM_SLAVE_ADDR, 
+	                        WriteAddr, 
+	                        I2C_MEMADD_SIZE_16BIT, 
+	                        &wdat, 
+	                        1, 
+	                        CONFIG_EPROM_TIMEOUT);
+	if(ret != HAL_OK){
+		printf("Bootloader:Eprom write fail!\n");
+		ret = HAL_I2C_DeInit(&hi2c1);//释放IO口为GPIO，复位句柄状态标志
+		ret = HAL_I2C_Init(&hi2c1);//这句重新初始化I2C控制器
 	}
-	return sta;
+	return ret;
 }
+/*****************************************************************************/
+HAL_StatusTypeDef epromReadByte(uint16_t ReadAddr, uint8_t rdat){//在指定地址读出8位数据
+//ReadAddr:开始读数的地址  
+//返回值  :数据				  
+	HAL_StatusTypeDef ret;
+	if(ReadAddr > (CONFIG_EPROM_SIZE - 1)){//写地址超过容量
+		ret = HAL_ERROR;
+		printf("Bootloader:Eprom read address invalid!\n");
+		return ret;
+	}	
+	ret = HAL_I2C_Mem_Read(&hi2c1,
+	                       CONFIG_EPROM_SLAVE_ADDR,
+	                       ReadAddr,
+	                       I2C_MEMADD_SIZE_16BIT,
+	                       &rdat,
+	                       1,
+	                       CONFIG_EPROM_TIMEOUT);
+	if(ret != HAL_OK){
+		printf("Bootloader:Eprom read fail!\n");
+		ret = HAL_I2C_DeInit(&hi2c1);//释放IO口为GPIO，复位句柄状态标志
+		ret = HAL_I2C_Init(&hi2c1);//这句重新初始化I2C控制器
+	}
+	return ret;
+}
+/*****************************************************************************/
 void clearEprom(void){//EPROM清除
 	uint8_t var = 0;
 	uint32_t i;
 	for(i = 0;i < EPROM_SIZE;i ++){
-		EEPROM_WriteData(0, &var, 1);
+		epromWriteByte(i, var);
 	}
 	printf("Bootloader->:Erase eprom sucess!\n");
-}
-void epromTest(void){
-	uint8_t wbuf[16] = {'0', '1', '2', '3', '4', '5', '6', '7', 
-	                        '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-	uint8_t rbuf[16];
-	EEPROM_WriteData(0x10, wbuf, 16);
-	EEPROM_ReadData(0x10, rbuf, 16);
-	while(1);
 }
 
 

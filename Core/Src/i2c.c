@@ -94,6 +94,7 @@ void HAL_I2C_MspDeInit(I2C_HandleTypeDef* i2cHandle)
     HAL_GPIO_DeInit(GPIOB, GPIO_PIN_8|GPIO_PIN_9);
 
   /* USER CODE BEGIN I2C1_MspDeInit 1 */
+	HAL_I2C_DeInit(&hi2c1);
 
   /* USER CODE END I2C1_MspDeInit 1 */
   }

@@ -1,12 +1,6 @@
 #ifndef __DWLASER_BOOTLOADER_H__
 #define __DWLASER_BOOTLOADER_H__
 /*****************************************************************************/
-#define DEBUG_BOOTLOADER					0
-#define DEBUG_NOBEEP						1
-#define BOARD_STM32F413H_DISCO				0//STM32F413H 官方开发板
-#define BOARD_STM32F407_DEV					1//STM32F407 淘宝开发板
-#define BOARD_STM32F413RH_DWLASER			0//STM32F413RH 产品板
-/*****************************************************************************/
 #include "stm32f4xx_hal.h"
 /*****************************************************************************/
 #include "cmsis_armcc.h"

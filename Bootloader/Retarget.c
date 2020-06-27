@@ -26,31 +26,19 @@ struct __FILE { int handle; /* Add whatever you need here */ };
 FILE __stdout;
 FILE __stdin;
 
-//extern UART_HandleTypeDef huart1;
-//int fputc(int ch,FILE *f){
-//    uint8_t temp[1]={ch};
-//    HAL_UART_Transmit(&huart1, temp, 1, 2);
-//	return ch;
-//}
-
 
 int fputc(int ch,FILE *f){
 	uint8_t dat;
 	dat = (ch & 0xFF);
-#if (BOARD_STM32F413H_DISCO == 1) || (BOARD_STM32F413RH_DWLASER == 1)
-	HAL_UART_Transmit(&huart1, &dat, 1, 0xFFFF);
-#endif
-#if	BOARD_STM32F407_DEV == 1
-	HAL_UART_Transmit(&huart3, &dat, 1, 0xFFFF);
-#endif
-	
-	//ITM_SendChar((uint32_t)ch);
+	HAL_UART_Transmit(&huart1, &dat, 1, 1000);
 	return ch;
 }
 
-//int fgetc(FILE *f) {
-//  return (SER_GetChar());
-//}
+int fgetc(FILE *f) {
+	uint8_t dat;
+	HAL_UART_Receive(&huart1, &dat, 1, 100);
+	return (dat);
+}
 
 
 //int ferror(FILE *f) {
