@@ -333,7 +333,9 @@ void bootLoadProcess(void){//bootload 执行程序
 			readStm32UniqueID();
 			printf("Bootloader:UniqueID->0x%08X%08X%08X\n", UniqueId[0], UniqueId[1], UniqueId[2]);
 			printf("Bootloader:Ver:0x%08X Build:%s:%s\n", BOOTLOADER_VER, __DATE__, __TIME__);
-			if(HAL_GPIO_ReadPin(INTLOCK_IN_GPIO_Port, INTLOCK_IN_Pin) == GPIO_PIN_SET){//安全连锁未插入
+			if(HAL_GPIO_ReadPin(INTLOCK_IN_GPIO_Port, INTLOCK_IN_Pin) == GPIO_PIN_SET &&//安全连锁未插入
+			   HAL_GPIO_ReadPin(FSWITCH_NC_GPIO_Port, FSWITCH_NC_Pin) == GPIO_PIN_SET &&//脚踏插入
+			   HAL_GPIO_ReadPin(FSWITCH_NO_GPIO_Port, FSWITCH_NO_Pin) == GPIO_PIN_RESET){//脚踏踩下
 				bootLoadState = BT_STATE_USBHOST_INIT;//进入USB更新APP流程
 			}
 			else{//安全连锁插入
@@ -359,7 +361,7 @@ void bootLoadProcess(void){//bootload 执行程序
 			if(releaseTime0 != releaseTime1){
 				printf("Bootloader:Wait usb disk init:%d Second!\n", releaseTime0);
 				releaseTime1 = releaseTime0;
-				if(releaseTime0 == 3){
+				if(releaseTime0 >= 3){
 					SET_GREEN(GPIO_PIN_RESET);
 					SET_BLUE(GPIO_PIN_RESET);
 					SET_RED(GPIO_PIN_SET);
