@@ -58,11 +58,11 @@ void MX_GPIO_Init(void)
                           |OTG_FS_PSON_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, I2C_SDA_Pin|LCD_OUT_Pin|TEC_OUT_Pin|FAN1_OUT_Pin 
+  HAL_GPIO_WritePin(GPIOB, I2C_SDA_Pin|LCD_OUT_Pin|FAN24V_OUT_Pin|TEC_OUT_Pin 
                           |AIM_OUT_Pin|GREEN_OUT_Pin|RED_OUT_Pin|BLUE_OUT_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(FAN0_OUT_GPIO_Port, FAN0_OUT_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(FAN5V_OUT_GPIO_Port, FAN5V_OUT_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : PCPin PCPin PCPin PCPin */
   GPIO_InitStruct.Pin = DA_SYNC_Pin|DA_SCLK_Pin|DA_DIN_Pin|I2C_SCL_Pin;
@@ -86,7 +86,7 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(LPA_PWM0_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PBPin PBPin PBPin */
-  GPIO_InitStruct.Pin = I2C_SDA_Pin|LCD_OUT_Pin|FAN1_OUT_Pin;
+  GPIO_InitStruct.Pin = I2C_SDA_Pin|LCD_OUT_Pin|TEC_OUT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -99,11 +99,11 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(PM_ALARM_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PtPin */
-  GPIO_InitStruct.Pin = TEC_OUT_Pin;
+  GPIO_InitStruct.Pin = FAN24V_OUT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(TEC_OUT_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(FAN24V_OUT_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PCPin PCPin PCPin PCPin */
   GPIO_InitStruct.Pin = PWR_KEY_Pin|FSWITCH_NO_Pin|ESTOP_IN_Pin|INTLOCK_IN_Pin;
@@ -131,11 +131,11 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(FSWITCH_NC_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PtPin */
-  GPIO_InitStruct.Pin = FAN0_OUT_Pin;
+  GPIO_InitStruct.Pin = FAN5V_OUT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_PULLUP;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(FAN0_OUT_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(FAN5V_OUT_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PBPin PBPin PBPin PBPin */
   GPIO_InitStruct.Pin = AIM_OUT_Pin|GREEN_OUT_Pin|RED_OUT_Pin|BLUE_OUT_Pin;

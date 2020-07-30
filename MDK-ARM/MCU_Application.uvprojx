@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F413xx</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;                         ../FATFS/Target;                         ../FATFS/App;                         ../USB_HOST/App;                         ../USB_HOST/Target;                         ../Drivers/STM32F4xx_HAL_Driver/Inc;                         ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;                         ../Middlewares/Third_Party/FatFs/src;                         ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc;                         ../Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc;                         ../Drivers/CMSIS/Device/ST/STM32F4xx/Include;                         ../Drivers/CMSIS/Include;                         ..\Bootloader</IncludePath>
+              <IncludePath>../Core/Inc; ../FATFS/Target; ../FATFS/App; ../USB_HOST/App; ../USB_HOST/Target; ../Drivers/STM32F4xx_HAL_Driver/Inc; ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy; ../Middlewares/Third_Party/FatFs/src; ../Middlewares/ST/STM32_USB_Host_Library/Core/Inc; ../Middlewares/ST/STM32_USB_Host_Library/Class/MSC/Inc; ../Drivers/CMSIS/Device/ST/STM32F4xx/Include; ../Drivers/CMSIS/Include; ..\Bootloader; ..\..\dwLaser_Application\MCU_Application\deviceInfo</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -422,11 +422,6 @@
               <FileName>stm32f4xx_hal_msp.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Core/Src/stm32f4xx_hal_msp.c</FilePath>
-            </File>
-            <File>
-              <FileName>stm32f4xx_hal_timebase_tim.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>../Core/Src/stm32f4xx_hal_timebase_tim.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -675,11 +670,6 @@
               <FilePath>..\Bootloader\bootLoader.c</FilePath>
             </File>
             <File>
-              <FileName>crc16.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Bootloader\crc16.c</FilePath>
-            </File>
-            <File>
               <FileName>flash_if.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Bootloader\flash_if.c</FilePath>
@@ -688,6 +678,16 @@
               <FileName>Retarget.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Bootloader\Retarget.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>deviceInfo</GroupName>
+          <Files>
+            <File>
+              <FileName>deviceConfig.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\dwLaser_Application\MCU_Application\deviceInfo\deviceConfig.c</FilePath>
             </File>
           </Files>
         </Group>

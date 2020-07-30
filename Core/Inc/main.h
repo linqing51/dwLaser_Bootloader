@@ -83,10 +83,10 @@ void Error_Handler(void);
 #define PM_ALARM_GPIO_Port GPIOB
 #define LCD_OUT_Pin GPIO_PIN_2
 #define LCD_OUT_GPIO_Port GPIOB
-#define TEC_OUT_Pin GPIO_PIN_14
+#define FAN24V_OUT_Pin GPIO_PIN_14
+#define FAN24V_OUT_GPIO_Port GPIOB
+#define TEC_OUT_Pin GPIO_PIN_15
 #define TEC_OUT_GPIO_Port GPIOB
-#define FAN1_OUT_Pin GPIO_PIN_15
-#define FAN1_OUT_GPIO_Port GPIOB
 #define PWR_KEY_Pin GPIO_PIN_8
 #define PWR_KEY_GPIO_Port GPIOC
 #define OTG_FS_PSOC_Pin GPIO_PIN_9
@@ -101,8 +101,8 @@ void Error_Handler(void);
 #define ESTOP_IN_GPIO_Port GPIOC
 #define INTLOCK_IN_Pin GPIO_PIN_12
 #define INTLOCK_IN_GPIO_Port GPIOC
-#define FAN0_OUT_Pin GPIO_PIN_2
-#define FAN0_OUT_GPIO_Port GPIOD
+#define FAN5V_OUT_Pin GPIO_PIN_2
+#define FAN5V_OUT_GPIO_Port GPIOD
 #define AIM_OUT_Pin GPIO_PIN_4
 #define AIM_OUT_GPIO_Port GPIOB
 #define GREEN_OUT_Pin GPIO_PIN_5
