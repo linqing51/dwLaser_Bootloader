@@ -30,9 +30,9 @@
 
 /* USER CODE END 1 */
 
-/** Configure pins as 
-        * Analog 
-        * Input 
+/** Configure pins as
+        * Analog
+        * Input
         * Output
         * EVENT_OUT
         * EXTI
@@ -50,15 +50,15 @@ void MX_GPIO_Init(void)
   __HAL_RCC_GPIOD_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOC, DA_SYNC_Pin|DA_SCLK_Pin|DA_DIN_Pin|LPA_PWM0_Pin 
+  HAL_GPIO_WritePin(GPIOC, DA_SYNC_Pin|DA_SCLK_Pin|DA_DIN_Pin|LPA_PWM0_Pin
                           |I2C_SCL_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LPC_PWM0_Pin|LPB_PWM1_Pin|LPB_PWM0_Pin|LPA_PWM1_Pin 
+  HAL_GPIO_WritePin(GPIOA, LPC_PWM0_Pin|LPB_PWM1_Pin|LPB_PWM0_Pin|LPA_PWM1_Pin
                           |OTG_FS_PSON_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, I2C_SDA_Pin|LCD_OUT_Pin|FAN24V_OUT_Pin|TEC_OUT_Pin 
+  HAL_GPIO_WritePin(GPIOB, I2C_SDA_Pin|LCD_OUT_Pin|FAN24V_OUT_Pin|TEC_OUT_Pin
                           |AIM_OUT_Pin|GREEN_OUT_Pin|RED_OUT_Pin|BLUE_OUT_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
