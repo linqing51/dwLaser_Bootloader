@@ -327,21 +327,30 @@ void bootLoadInit(void){//引导程序初始化
 	SET_LPB0(GPIO_PIN_RESET);
 	SET_LPB1(GPIO_PIN_RESET);
 	SET_LPC0(GPIO_PIN_RESET);
+	//
 	SET_RED(GPIO_PIN_RESET);//设置R LED亮度
 	SET_GREEN(GPIO_PIN_RESET);//设置G LED亮度
 	SET_BLUE(GPIO_PIN_RESET);//设置B LED亮度
 	SET_AIM(GPIO_PIN_RESET);
+	//R
 	SET_RED(GPIO_PIN_SET);//设置R LED亮度
 	SET_GREEN(GPIO_PIN_RESET);//设置G LED亮度
 	SET_BLUE(GPIO_PIN_RESET);//设置B LED亮度
-	HAL_Delay(100);
-	SET_BLUE(GPIO_PIN_SET);//设置B LED亮度
-	SET_RED(GPIO_PIN_RESET);//设置R LED亮度
-	SET_GREEN(GPIO_PIN_RESET);//设置G LED亮度
-	HAL_Delay(100);
+	HAL_Delay(200);
+	//G
 	SET_BLUE(GPIO_PIN_RESET);//设置B LED亮度
 	SET_RED(GPIO_PIN_RESET);//设置R LED亮度
 	SET_GREEN(GPIO_PIN_SET);//设置G LED亮度
+	HAL_Delay(200);
+	//B
+	SET_BLUE(GPIO_PIN_SET);//设置B LED亮度
+	SET_RED(GPIO_PIN_RESET);//设置R LED亮度
+	SET_GREEN(GPIO_PIN_RESET);//设置G LED亮度
+	HAL_Delay(200);
+	SET_BLUE(GPIO_PIN_RESET);//设置B LED亮度
+	SET_RED(GPIO_PIN_RESET);//设置R LED亮度
+	SET_GREEN(GPIO_PIN_SET);//设置G LED亮度
+	
 	overTime = HAL_GetTick() + CONFIG_JUMP_DELAY;
 	releaseTime0 = 0;
 	releaseTime1 = 0;
@@ -448,6 +457,9 @@ void bootLoadProcess(void){//bootload 执行程序
 	//注册一个FATFS文件系统
 	switch(bootLoadState){
 		case BT_STATE_IDLE:{//开机等待U盘识别                             
+			SET_GREEN(GPIO_PIN_SET);
+			SET_BLUE(GPIO_PIN_RESET);
+			SET_RED(GPIO_PIN_RESET);
 			printf("Bootloader:Start...............\n");
 			readStm32UniqueID();
 			printf("Bootloader:UniqueID->0x%08X%08X%08X\n", UniqueId[0], UniqueId[1], UniqueId[2]);
@@ -492,26 +504,6 @@ void bootLoadProcess(void){//bootload 执行程序
 			if(releaseTime0 != releaseTime1){
 				printf("Bootloader:Wait usb disk init:%d Second!\n", releaseTime0);
 				releaseTime1 = releaseTime0;
-				if(releaseTime0 >= 3){
-					SET_GREEN(GPIO_PIN_RESET);
-					SET_BLUE(GPIO_PIN_RESET);
-					SET_RED(GPIO_PIN_SET);
-				}
-				else if(releaseTime0 == 2){
-					SET_RED(GPIO_PIN_RESET);
-					SET_BLUE(GPIO_PIN_RESET);
-					SET_GREEN(GPIO_PIN_SET);
-				}
-				else if(releaseTime0 == 1){
-					SET_RED(GPIO_PIN_RESET);
-					SET_GREEN(GPIO_PIN_RESET);
-					SET_BLUE(GPIO_PIN_SET);
-				}
-				else if(releaseTime0 == 0){
-					SET_RED(GPIO_PIN_RESET);//设置R LED亮度
-					SET_GREEN(GPIO_PIN_RESET);//设置G LED亮度
-					SET_BLUE(GPIO_PIN_RESET);//设置B LED亮度
-				}
 			} 
 			if(releaseTime0 <= 0){
 				bootLoadState = BT_STATE_READ_CFG;
@@ -706,6 +698,9 @@ void bootLoadProcess(void){//bootload 执行程序
 				printf("Bootloader:Stack Pointer:0x%X\n", *(__IO uint32_t *) APPLICATION_FLASH_START_ADDRESS);
 				printf("\n\n\n\r\r\r");
 				
+				SET_GREEN(GPIO_PIN_RESET);
+				SET_BLUE(GPIO_PIN_RESET);
+				SET_RED(GPIO_PIN_RESET);
 				__disable_irq();
 				SysTick->CTRL = 0;//关键代码
 				//关闭中断                                    				
@@ -1137,7 +1132,7 @@ static uint32_t getNewLcdAppCrc(void){//获取待更新LCD APP CRC16
 	uint32_t crc32;
 	uint8_t readflag = TRUE;
 	uint16_t bytesread;//实际文件读取字节数
-	retUsbH = f_open(&LcdFile, LMCU_FIRMWARE_FILENAME, FA_OPEN_EXISTING | FA_READ);
+	retUsbH = f_open(&LcdFile, LLCD_FIRMWARE_FILENAME, FA_OPEN_EXISTING | FA_READ);
 	if(retUsbH != FR_OK){//读取失败
 		bootLoadFailHandler(BT_FAIL_READ_LLCD_APP);			
 	}
@@ -1172,9 +1167,6 @@ static uint32_t updateMcuApp(void){//更新MCU APP
 	if(f_size(&McuFile) > APPLICATION_FLASH_SIZE){//MCU固件大于FLSAH容量
 		bootLoadFailHandler(BT_FAIL_LMCU_APP_CHECK);
 	}
-	SET_GREEN(GPIO_PIN_RESET);
-	SET_RED(GPIO_PIN_RESET);
-	SET_BLUE(GPIO_PIN_SET);
 	HAL_FLASH_Unlock();
 	__HAL_FLASH_CLEAR_FLAG(FLASH_FLAG_BSY|FLASH_FLAG_EOP|FLASH_FLAG_PGSERR|FLASH_FLAG_WRPERR);
 	if (FLASH_If_EraseApplication() != 0x00){//擦除APP FLASH区域失败
@@ -1182,9 +1174,6 @@ static uint32_t updateMcuApp(void){//更新MCU APP
 	}
 	checkBlank(APPLICATION_FLASH_START_ADDRESS, APPLICATION_FLASH_SIZE);//FLASH 查空
 	printf("Bootloader:Erase mcu application sucess.\n");
-	SET_GREEN(GPIO_PIN_RESET);
-	SET_RED(GPIO_PIN_RESET);
-	SET_BLUE(GPIO_PIN_RESET);
 	RamAddress = (uint32_t)&RAM_Buf;//获取RAM缓存区地址
 	/* Erase address init */
 	LastPGAddress = APPLICATION_FLASH_START_ADDRESS;
@@ -1218,7 +1207,6 @@ static uint32_t updateMcuApp(void){//更新MCU APP
 	HAL_FLASH_Lock();
 	printf("Bootloader:Write mcu app finish.\n");
 	f_close(&McuFile);
-	SET_GREEN(GPIO_PIN_SET);
 	return crc32;
 }
 static uint32_t updateLcdApp(void){//更新LCD APP
