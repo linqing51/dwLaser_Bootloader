@@ -1,4 +1,5 @@
 #include "bootLoader.h"
+#include "exdac.h"
 /*****************************************************************************/
 //SECTOR0->16K:BOOTLOADER
 //SECTOR1->16K:BOOTLOADER
@@ -62,32 +63,20 @@
 #define MORSECODE_LONG_TIME					750
 #define MORSECODE_SHORT_TIME				150
 /*****************************************************************************/
-#define SET_TEC(b)							HAL_GPIO_WritePin(TEC_OUT_GPIO_Port, TEC_OUT_Pin, b)
-#define FLIP_TEC()							HAL_GPIO_TogglePin(TEC_OUT_GPIO_Port, TEC_OUT_Pin)
+#define SET_TEC(b)							HAL_GPIO_WritePin(HEN_OUT0_GPIO_Port, HEN_OUT0_Pin, b)
+#define FLIP_TEC()							HAL_GPIO_TogglePin(HEN_OUT0_GPIO_Port, HEN_OUT0_Pin)
 
 #define SET_FAN5V(b)						HAL_GPIO_WritePin(FAN5V_OUT_GPIO_Port, FAN5V_OUT_Pin, b)
 #define FLIP_FAN5V()						HAL_GPIO_TogglePin(FAN5V_OUT_GPIO_Port, FAN5V_OUT_Pin)
 
-#define SET_FAN24V(b)						HAL_GPIO_WritePin(FAN24V_OUT_GPIO_Port, FAN24V_OUT_Pin, b)
-#define FLIP_FAN24V()						HAL_GPIO_TogglePin(FAN24V_OUT_GPIO_Port, FAN24V_OUT_Pin)
+#define SET_FAN24V(b)						HAL_GPIO_WritePin(HEN_OUT1_GPIO_Port, HEN_OUT1_Pin, b)
+#define FLIP_FAN24V()						HAL_GPIO_TogglePin(HEN_OUT1_GPIO_Port, HEN_OUT1_Pin)
 
-#define SET_LCD(b)							HAL_GPIO_WritePin(LCD_OUT_GPIO_Port, LCD_OUT_Pin, b)
-#define FLIP_LCD()							HAL_GPIO_WritePin(LCD_OUT_GPIO_Port, LCD_OUT_Pin, b)
+#define SET_LCD(b)							HAL_GPIO_WritePin(LCD_PWR_GPIO_Port, LCD_PWR_Pin, b)
+#define FLIP_LCD()							HAL_GPIO_WritePin(LCD_PWR_GPIO_Port, LCD_PWR_Pin, b)
 
-#define SET_LPA0(b)							HAL_GPIO_WritePin(LPA_PWM0_GPIO_Port, LPA_PWM0_Pin, b)
-#define FLIP_LPA0()							HAL_GPIO_TogglePin(LPA_PWM0_GPIO_Port, LPA_PWM0_Pin)
-
-#define SET_LPA1(b)							HAL_GPIO_WritePin(LPA_PWM1_GPIO_Port, LPA_PWM1_Pin, b)
-#define FLIP_LPA1()							HAL_GPIO_TogglePin(LPA_PWM1_GPIO_Port, LPA_PWM1_Pin)
-
-#define SET_LPB0(b)							HAL_GPIO_WritePin(LPB_PWM0_GPIO_Port, LPB_PWM0_Pin, b)
-#define FLIP_LPB0()							HAL_GPIO_TogglePin(LPB_PWM0_GPIO_Port, LPB_PWM0_Pin)
-
-#define SET_LPB1(b)							HAL_GPIO_WritePin(LPB_PWM1_GPIO_Port, LPB_PWM1_Pin, b)
-#define FLIP_LPB1()							HAL_GPIO_TogglePin(LPB_PWM1_GPIO_Port, LPB_PWM1_Pin)
-
-#define SET_LPC0(b)							HAL_GPIO_WritePin(LPC_PWM0_GPIO_Port, LPC_PWM0_Pin, b)
-#define FLIP_LPC0()							HAL_GPIO_TogglePin(LPC_PWM0_GPIO_Port, LPC_PWM0_Pin)
+#define SET_LP_PWM(b)						HAL_GPIO_WritePin(LP_PWM_GPIO_Port, LP_PWM_Pin, b)
+#define FLIP_LP_PWM()						HAL_GPIO_TogglePin(LP_PWM_GPIO_Port, LP_PWM_Pin)
 
 #define SET_RED(b)							HAL_GPIO_WritePin(RED_OUT_GPIO_Port, RED_OUT_Pin, b)
 #define FLIP_RED()							HAL_GPIO_TogglePin(RED_OUT_GPIO_Port, RED_OUT_Pin)
@@ -98,8 +87,11 @@
 #define SET_BLUE(b)							HAL_GPIO_WritePin(BLUE_OUT_GPIO_Port, BLUE_OUT_Pin, b)
 #define FLIP_BLUE()							HAL_GPIO_TogglePin(BLUE_OUT_GPIO_Port, BLUE_OUT_Pin)
 
-#define SET_AIM(b)							HAL_GPIO_WritePin(AIM_OUT_GPIO_Port, AIM_OUT_Pin, b)
+#define SET_AIM(b)							HAL_GPIO_WritePin(AIM_OUT_GPIO_Port, AIM_OUT_Pin, b)			
 #define FLIP_AIM()							HAL_GPIO_TogglePin(AIM_OUT_GPIO_Port, AIM_OUT_Pin)
+
+#define SET_SPK_SD(b)						HAL_GPIO_WritePin(SPK_SD_GPIO_Port, SPK_SD_Pin, b)
+#define FLIP_SPK_SD()						HAL_GPIO_TogglePin(SPK_SD_GPIO_Port, SPK_SD_Pin)
 /*****************************************************************************/
 typedef enum {
 	CLEAR_EPROM_ALL 			= 0x01,
@@ -322,12 +314,10 @@ void bootLoadInit(void){//引导程序初始化
 	SET_FAN24V(GPIO_PIN_SET);//打开24V风扇
 	SET_LCD(GPIO_PIN_SET);//打开LCD供电
 	SET_TEC(GPIO_PIN_RESET);//关闭制冷
-	SET_LPA0(GPIO_PIN_RESET);//关闭所有激光
-	SET_LPA1(GPIO_PIN_RESET);
-	SET_LPB0(GPIO_PIN_RESET);
-	SET_LPB1(GPIO_PIN_RESET);
-	SET_LPC0(GPIO_PIN_RESET);
-	//
+	SET_LP_PWM(GPIO_PIN_RESET);//关闭所有激光
+	SET_SPK_SD(GPIO_PIN_RESET);//关闭喇叭
+	initChipDac();//DAC初始化
+
 	SET_RED(GPIO_PIN_RESET);//设置R LED亮度
 	SET_GREEN(GPIO_PIN_RESET);//设置G LED亮度
 	SET_BLUE(GPIO_PIN_RESET);//设置B LED亮度
@@ -360,11 +350,23 @@ void bootLoadInit(void){//引导程序初始化
 	printf("\r\n");
 	printf("\r\n");   
 	//显示输入IO状态
-	if(HAL_GPIO_ReadPin(PWR_KEY_GPIO_Port, PWR_KEY_Pin) == GPIO_PIN_SET){
-		printf("Bootloader:INPUT->PWR_ON        = Open!\n");
+	if(HAL_GPIO_ReadPin(SYS_ID0_GPIO_Port, SYS_ID0_Pin) == GPIO_PIN_SET){
+		printf("Bootloader:INPUT->SYS_ID0       = Open!\n");
 	}
 	else{
-		printf("Bootloader:INPUT->PWR_ON        = Close!\n");
+		printf("Bootloader:INPUT->SYS_ID0       = Close!\n");
+	}
+	if(HAL_GPIO_ReadPin(SYS_ID1_GPIO_Port, SYS_ID1_Pin) == GPIO_PIN_SET){
+		printf("Bootloader:INPUT->SYS_ID1       = Open!\n");
+	}
+	else{
+		printf("Bootloader:INPUT->SYS_ID1       = Close!\n");
+	}
+	if(HAL_GPIO_ReadPin(SYS_ID2_GPIO_Port, SYS_ID2_Pin) == GPIO_PIN_SET){
+		printf("Bootloader:INPUT->SYS_ID2       = Open!\n");
+	}
+	else{
+		printf("Bootloader:INPUT->SYS_ID2       = Close!\n");
 	}
 	if(HAL_GPIO_ReadPin(FSWITCH_NC_GPIO_Port, FSWITCH_NC_Pin) == GPIO_PIN_SET){
 		printf("Bootloader:INPUT->FSWITCH_NC    = Open!\n");
@@ -397,35 +399,11 @@ void bootLoadInit(void){//引导程序初始化
 		printf("Bootloader:INPUT->PM_ALARM      = Low!\n");
 	}
 	//显示输出IO状态
-	if(HAL_GPIO_ReadPin(LPA_PWM0_GPIO_Port, LPA_PWM0_Pin) == GPIO_PIN_SET){//LPA_PWM0
-		printf("Bootloader:OUTPUT->LPA_PWM0     = High!\n");
+	if(HAL_GPIO_ReadPin(LP_PWM_GPIO_Port, LP_PWM_Pin) == GPIO_PIN_SET){//LP_PWM
+		printf("Bootloader:OUTPUT->LP_PWM     = High!\n");
 	}
 	else{
-		printf("Bootloader:OUTPUT->LPA_PWM0     = Low!\n");
-	}
-	if(HAL_GPIO_ReadPin(LPA_PWM1_GPIO_Port, LPA_PWM1_Pin) == GPIO_PIN_SET){//LPA_PWM1
-		printf("Bootloader:OUTPUT->LPA_PWM1     = High!\n");
-	}
-	else{
-		printf("Bootloader:OUTPUT->LPA_PWM1     = Low!\n");
-	}
-	if(HAL_GPIO_ReadPin(LPB_PWM0_GPIO_Port, LPB_PWM0_Pin) == GPIO_PIN_SET){//LPB_PWM0
-		printf("Bootloader:OUTPUT->LPB_PWM0     = High!\n");
-	}
-	else{
-		printf("Bootloader:OUTPUT->LPB_PWM0     = Low!\n");
-	}
-	if(HAL_GPIO_ReadPin(LPA_PWM1_GPIO_Port, LPA_PWM1_Pin) == GPIO_PIN_SET){//LPB_PWM1
-		printf("Bootloader:OUTPUT->LPA_PWM1     = High!\n");
-	}
-	else{
-		printf("Bootloader:OUTPUT->LPA_PWM1     = Low!\n");
-	}
-	if(HAL_GPIO_ReadPin(LPC_PWM0_GPIO_Port, LPC_PWM0_Pin) == GPIO_PIN_SET){//LPC_PWM0
-		printf("Bootloader:OUTPUT->LPC_PWM0     = High!\n");
-	}
-	else{
-		printf("Bootloader:OUTPUT->LPC_PWM0     = Low!\n");
+		printf("Bootloader:OUTPUT->LP_PWM     = Low!\n");
 	}
 	if(HAL_GPIO_ReadPin(FAN5V_OUT_GPIO_Port, FAN5V_OUT_Pin) == GPIO_PIN_SET){//FAN
 		printf("Bootloader:OUTPUT->FAN5V_OUT    = High!\n");
@@ -433,13 +411,13 @@ void bootLoadInit(void){//引导程序初始化
 	else{
 		printf("Bootloader:OUTPUT->FAN5V_OUT    = Low!\n");
 	}
-	if(HAL_GPIO_ReadPin(FAN24V_OUT_GPIO_Port, FAN24V_OUT_Pin) == GPIO_PIN_SET){//FAN
+	if(HAL_GPIO_ReadPin(HEN_OUT1_GPIO_Port, HEN_OUT1_Pin) == GPIO_PIN_SET){//FAN
 		printf("Bootloader:OUTPUT->FAN24V_OUT   = High!\n");
 	}
 	else{
 		printf("Bootloader:OUTPUT->FAN24V_OUT   = Low!\n");
 	}
-	if(HAL_GPIO_ReadPin(TEC_OUT_GPIO_Port, TEC_OUT_Pin) == GPIO_PIN_SET){//TEC
+	if(HAL_GPIO_ReadPin(HEN_OUT0_GPIO_Port, HEN_OUT0_Pin) == GPIO_PIN_SET){//TEC
 		printf("Bootloader:OUTPUT->TEC_OUT      = High!\n");
 	}
 	else{
