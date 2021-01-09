@@ -89,8 +89,8 @@ void Error_Handler(void);
 #define SPK_SD_GPIO_Port GPIOA
 #define LP_PWM_Pin GPIO_PIN_7
 #define LP_PWM_GPIO_Port GPIOA
-#define FSWITCH_NC_Pin GPIO_PIN_4
-#define FSWITCH_NC_GPIO_Port GPIOC
+#define SOFTPOWER_IN_Pin GPIO_PIN_4
+#define SOFTPOWER_IN_GPIO_Port GPIOC
 #define SYS_LED_ERR_Pin GPIO_PIN_5
 #define SYS_LED_ERR_GPIO_Port GPIOC
 #define SYS_LED_RUN_Pin GPIO_PIN_0
@@ -127,8 +127,8 @@ void Error_Handler(void);
 #define USB_OTG_FS_DM_GPIO_Port GPIOA
 #define USB_OTG_FS_DP_Pin GPIO_PIN_12
 #define USB_OTG_FS_DP_GPIO_Port GPIOA
-#define FSWITCH_NO_km_Pin GPIO_PIN_15
-#define FSWITCH_NO_km_GPIO_Port GPIOA
+#define FSWITCH_NC_Pin GPIO_PIN_15
+#define FSWITCH_NC_GPIO_Port GPIOA
 #define FSWITCH_NO_Pin GPIO_PIN_10
 #define FSWITCH_NO_GPIO_Port GPIOC
 #define ESTOP_IN_Pin GPIO_PIN_11

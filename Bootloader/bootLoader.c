@@ -92,6 +92,11 @@
 
 #define SET_SPK_SD(b)						HAL_GPIO_WritePin(SPK_SD_GPIO_Port, SPK_SD_Pin, b)
 #define FLIP_SPK_SD()						HAL_GPIO_TogglePin(SPK_SD_GPIO_Port, SPK_SD_Pin)
+
+#define SET_ERR_LED(b)						HAL_GPIO_WritePin(SYS_LED_ERR_GPIO_Port, SYS_LED_ERR_Pin, b)
+#define FLIP_ERR_LED(b)						HAL_GPIO_TogglePin(SYS_LED_ERR_GPIO_Port, SYS_LED_ERR_Pin)
+#define SET_RUN_LED(b)						HAL_GPIO_WritePin(SYS_LED_RUN_GPIO_Port, SYS_LED_RUN_Pin, b)
+#define FLIP_RUN_LED(b)						HAL_GPIO_TogglePin(SYS_LED_RUN_GPIO_Port, SYS_LED_RUN_Pin)
 /*****************************************************************************/
 typedef enum {
 	CLEAR_EPROM_ALL 			= 0x01,
@@ -179,6 +184,7 @@ const uint32_t crc32Tab[] = { /* CRC polynomial 0xedb88320 */
 	0x54de5729, 0x23d967bf, 0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94,
 	0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
 };
+static uint8_t BID;
 /*****************************************************************************/
 static void bootLoadFailHandler(uint8_t ftype);//引导故障程序
 static uint32_t updateMcuApp(void);
@@ -310,6 +316,9 @@ static void softDelayMs(uint16_t ms){
 }
 /******************************************************************************/
 void bootLoadInit(void){//引导程序初始化
+	BID = 0;
+	SET_RUN_LED(GPIO_PIN_SET);
+	SET_ERR_LED(GPIO_PIN_SET);
 	SET_FAN5V(GPIO_PIN_SET);//打开5V风扇
 	SET_FAN24V(GPIO_PIN_SET);//打开24V风扇
 	SET_LCD(GPIO_PIN_SET);//打开LCD供电
@@ -351,22 +360,25 @@ void bootLoadInit(void){//引导程序初始化
 	printf("\r\n");   
 	//显示输入IO状态
 	if(HAL_GPIO_ReadPin(SYS_ID0_GPIO_Port, SYS_ID0_Pin) == GPIO_PIN_SET){
-		printf("Bootloader:INPUT->SYS_ID0       = Open!\n");
+		printf("Bootloader:INPUT->SYS_ID0       = HIGH!\n");
+		BID |= (1 << 0);
 	}
 	else{
-		printf("Bootloader:INPUT->SYS_ID0       = Close!\n");
+		printf("Bootloader:INPUT->SYS_ID0       = LOW!\n");
 	}
 	if(HAL_GPIO_ReadPin(SYS_ID1_GPIO_Port, SYS_ID1_Pin) == GPIO_PIN_SET){
-		printf("Bootloader:INPUT->SYS_ID1       = Open!\n");
+		printf("Bootloader:INPUT->SYS_ID1       = HIGH!\n");
+		BID |= (1 << 1);
 	}
 	else{
-		printf("Bootloader:INPUT->SYS_ID1       = Close!\n");
+		printf("Bootloader:INPUT->SYS_ID1       = LOW!\n");
 	}
 	if(HAL_GPIO_ReadPin(SYS_ID2_GPIO_Port, SYS_ID2_Pin) == GPIO_PIN_SET){
-		printf("Bootloader:INPUT->SYS_ID2       = Open!\n");
+		printf("Bootloader:INPUT->SYS_ID2       = HIGH!\n");
+		BID |= (1 << 2);
 	}
 	else{
-		printf("Bootloader:INPUT->SYS_ID2       = Close!\n");
+		printf("Bootloader:INPUT->SYS_ID2       = LOW!\n");
 	}
 	if(HAL_GPIO_ReadPin(FSWITCH_NC_GPIO_Port, FSWITCH_NC_Pin) == GPIO_PIN_SET){
 		printf("Bootloader:INPUT->FSWITCH_NC    = Open!\n");
@@ -381,10 +393,10 @@ void bootLoadInit(void){//引导程序初始化
 		printf("Bootloader:INPUT->FSWITCH_NO    = Close!\n");
 	}
 	if(HAL_GPIO_ReadPin(ESTOP_IN_GPIO_Port, ESTOP_IN_Pin) == GPIO_PIN_SET){
-		printf("Bootloader:INPUT->ESTOP         = Close!\n");
+		printf("Bootloader:INPUT->ESTOP         = Open!\n");
 	}
 	else{
-		printf("Bootloader:INPUT->ESTOP         = Open!\n");
+		printf("Bootloader:INPUT->ESTOP         = Close!\n");
 	}
 	if(HAL_GPIO_ReadPin(INTLOCK_IN_GPIO_Port, INTLOCK_IN_Pin) == GPIO_PIN_SET){
 		printf("Bootloader:INPUT->INTLOCK       = Open!\n");
@@ -398,12 +410,18 @@ void bootLoadInit(void){//引导程序初始化
 	else{
 		printf("Bootloader:INPUT->PM_ALARM      = Low!\n");
 	}
-	//显示输出IO状态
-	if(HAL_GPIO_ReadPin(LP_PWM_GPIO_Port, LP_PWM_Pin) == GPIO_PIN_SET){//LP_PWM
-		printf("Bootloader:OUTPUT->LP_PWM     = High!\n");
+	if(HAL_GPIO_ReadPin(SOFTPOWER_IN_GPIO_Port, SOFTPOWER_IN_Pin) == GPIO_PIN_SET){//Soft Power Key
+		printf("Bootloader:INPUT->SOFTPOWER_IN 	= Open!\n");
 	}
 	else{
-		printf("Bootloader:OUTPUT->LP_PWM     = Low!\n");
+		printf("Bootloader:INPUT->SOFTPOWER_IN	= Close!\n");
+	}
+	//显示输出IO状态
+	if(HAL_GPIO_ReadPin(LP_PWM_GPIO_Port, LP_PWM_Pin) == GPIO_PIN_SET){//LP_PWM
+		printf("Bootloader:OUTPUT->LP_PWM     	= High!\n");
+	}
+	else{
+		printf("Bootloader:OUTPUT->LP_PWM     	= Low!\n");
 	}
 	if(HAL_GPIO_ReadPin(FAN5V_OUT_GPIO_Port, FAN5V_OUT_Pin) == GPIO_PIN_SET){//FAN
 		printf("Bootloader:OUTPUT->FAN5V_OUT    = High!\n");
@@ -424,7 +442,6 @@ void bootLoadInit(void){//引导程序初始化
 		printf("Bootloader:OUTPUT->TEC_OUT      = Low!\n");
 	}
 	HAL_Delay(10);
-	
 }
 void bootLoadProcess(void){//bootload 执行程序
 	HAL_StatusTypeDef ret;
@@ -440,10 +457,12 @@ void bootLoadProcess(void){//bootload 执行程序
 			SET_RED(GPIO_PIN_RESET);
 			printf("Bootloader:Start...............\n");
 			readStm32UniqueID();
+			printf("Bootloader:Board ID->0x%X\n", BID);
 			printf("Bootloader:UniqueID->0x%08X%08X%08X\n", UniqueId[0], UniqueId[1], UniqueId[2]);
-			printf("Bootloader:Mcu flash size:%d Kbytes\n", cpuGetFlashSize());
-			printf("Bootloader:Ver:0x%08X Build:%s:%s\n", BOOTLOADER_VER, __DATE__, __TIME__);
+			printf("Bootloader:Mcu flash size->%d Kbytes\n", cpuGetFlashSize());
+			printf("Bootloader:Ver->0x%08X Build->%s:%s\n", BOOTLOADER_VER, __DATE__, __TIME__);
 			if(HAL_GPIO_ReadPin(INTLOCK_IN_GPIO_Port, INTLOCK_IN_Pin) == GPIO_PIN_SET &&//安全连锁未插入
+			   HAL_GPIO_ReadPin(ESTOP_IN_GPIO_Port, ESTOP_IN_Pin) == GPIO_PIN_SET &&//急停开关按下
 			   HAL_GPIO_ReadPin(FSWITCH_NC_GPIO_Port, FSWITCH_NC_Pin) == GPIO_PIN_RESET &&//脚踏插入
 			   HAL_GPIO_ReadPin(FSWITCH_NO_GPIO_Port, FSWITCH_NO_Pin) == GPIO_PIN_RESET){//脚踏踩下
 				bootLoadState = BT_STATE_LOAD_FWINFO;//进入USB更新APP流程
@@ -696,6 +715,7 @@ void bootLoadProcess(void){//bootload 执行程序
 				//USBH_DeInit(&hUsbHostFS);
 				//SystemClock_Reset();//复位RCC时钟
 				//UsbGpioReset();
+				SET_RUN_LED(GPIO_PIN_RESET);
 				Jump_To_Application();
 			}
 			bootLoadFailHandler(BT_FAIL_VECTOR_TABLE_INVALID);
@@ -961,6 +981,8 @@ static void beepDiag(uint8_t diag){//蜂鸣器诊断声音 摩尔斯电码
 }
 static void bootLoadFailHandler(uint8_t ftype){//引导错误程序
 	MX_DriverVbusFS(FALSE);//关闭USB VBUS
+	SET_ERR_LED(GPIO_PIN_RESET);
+	printf("Bootloader:SYS_ERR_LED->On!\n");
 	SET_GREEN(GPIO_PIN_RESET);
 	SET_BLUE(GPIO_PIN_RESET);
 	SET_RED(GPIO_PIN_RESET);
