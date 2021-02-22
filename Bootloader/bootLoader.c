@@ -1644,17 +1644,6 @@ static void clearEprom(clarmEpromCmd_t cmd){//Çå³ýEPROMÄÚÈÝ
 			printf("Bootloader->:Erase eprom log info sucess!\n");
 			break;
 		}
-		case CLEAR_EPROM_NVRAM:{
-			for(i = CONFIG_EPROM_LOGINFO_START;i <= CONFIG_EPROM_NVRAM_END;i ++){
-				epromWriteByte(i, var);
-			}
-			printf("Bootloader->:Erase eprom nvram sucess!\n");
-			for(i = CONFIG_EPROM_FDRAM_START;i <= CONFIG_EPROM_FDRAM_END;i ++){
-				epromWriteByte(i, var);
-			}
-			printf("Bootloader->:Erase eprom fdram info sucess!\n");
-			break;
-		}
 		default:break;
 	}
 }
