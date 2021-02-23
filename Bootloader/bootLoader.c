@@ -107,13 +107,13 @@ typedef enum {
 	CLEAR_EPROM_LOG_INFO		= 0x06,
 }clarmEpromCmd_t;
 /*****************************************************************************/
-static uint32_t TmpReadSize = 0x00;
-static uint32_t RamAddress = 0x00;
+uint32_t TmpReadSize = 0x00;
+uint32_t RamAddress = 0x00;
 static __IO uint32_t LastPGAddress = APPLICATION_FLASH_START_ADDRESS;
-static uint8_t RAM_Buf[BUFFER_SIZE] = {0x00};//文件读写缓冲
+uint8_t RAM_Buf[BUFFER_SIZE] = {0x00};//文件读写缓冲
 /*****************************************************************************/
-static uint8_t gddcRxBuf[GDDC_RX_BUF_SIZE];//屏幕串口接收缓冲区
-static uint8_t gddcTxBuf[GDDC_TX_BUF_SIZE];//屏幕串口发送缓冲区
+uint8_t gddcRxBuf[GDDC_RX_BUF_SIZE];//屏幕串口接收缓冲区
+uint8_t gddcTxBuf[GDDC_TX_BUF_SIZE];//屏幕串口发送缓冲区
 /*****************************************************************************/
 extern I2C_HandleTypeDef hi2c1;
 extern UART_HandleTypeDef huart5;
@@ -1136,11 +1136,13 @@ static uint32_t getNewLcdAppCrc(void){//获取待更新LCD APP CRC16
 	if(retUsbH != FR_OK){//读取失败
 		bootLoadFailHandler(BT_FAIL_READ_LLCD_APP);			
 	}
+	f_lseek(&LcdFile, 0);//读取指针移动到开头
 	crc32 = 0;
 	crc32Clear();
 	while(readflag){
 		/* Read maximum 512 Kbyte from the selected file */
 		f_read(&LcdFile, RAM_Buf, BUFFER_SIZE, (void*)&bytesread);
+		
 		crc32 = crc32Calculate(RAM_Buf, bytesread);
 		/* Temp variable */
 		TmpReadSize = bytesread;
@@ -1237,6 +1239,7 @@ static uint32_t updateLcdApp(void){//更新LCD APP
 	if(retUsbH != FR_OK){//读取失败
 		bootLoadFailHandler(BT_FAIL_READ_LLCD_APP);
 	}
+	f_lseek(&LcdFile, 0);//读取指针移动到开头
 	printf("Bootloader:Open %s sucess,ECODE=0x%02XH.\n", LLCD_FIRMWARE_FILENAME, retUsbH);
 	for(baudrateSelect = 0; baudrateSelect < (sizeof(baudrateTable) / 4); baudrateSelect ++){//波特率测试，握手		
 		if(baudrateSelect >= (sizeof(baudrateTable) / 4)){
@@ -1266,11 +1269,7 @@ static uint32_t updateLcdApp(void){//更新LCD APP
 		}
 	}
 	dp_display_text_num(preCmd, sizeof(preCmd));
-	retUsbH = f_open(&LcdFile, LLCD_FIRMWARE_FILENAME, FA_OPEN_EXISTING | FA_READ);
-	if(retUsbH != FR_OK){//读取失败
-		bootLoadFailHandler(BT_FAIL_READ_LLCD_APP);
-	}
-    fileSize =  f_size(&LcdFile);   
+    fileSize =  f_size(&LcdFile);
     //文件大小
 	cmd[2] = (fileSize >> 24) & 0xff;
 	cmd[3] = (fileSize >> 16) & 0xff;
@@ -1324,7 +1323,7 @@ static uint32_t updateLcdApp(void){//更新LCD APP
 		gddcTxBuf[0] = signName;
 		gddcTxBuf[1] = ~signName;
         //读取2048个字节但不超过文件大小
-         transferByte = blockSize;
+        transferByte = blockSize;
 		if(fileIndex + transferByte > fileSize){
 			transferByte = fileSize - fileIndex;
 		}
