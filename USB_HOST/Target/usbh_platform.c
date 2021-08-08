@@ -40,7 +40,7 @@ void MX_DriverVbusFS(uint8_t state)
   if(state == 0)
   {
     /* Drive high Charge pump */ 	     
-    data = GPIO_PIN_RESET;
+    data = GPIO_PIN_RESET; 
   }
   else
   {
