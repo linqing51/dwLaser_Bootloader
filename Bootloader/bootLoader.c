@@ -623,6 +623,10 @@ void bootLoadProcess(void){//bootload 执行程序
 			firmwareInfo.lcdAppCrc = crcUdisk;//更新EPROM中LCD APP CRC值
 			epromWrite(CONFIG_EPROM_FWINFO_START, (uint8_t*)&firmwareInfo, sizeof(firmwareInfo));
 			printf("Bootloader:Update new crc32 sucess.\n");
+			HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
+			HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
+			HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
+			HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
 			bootLoadState = BT_STATE_RESET;//更新APP
 			break;
 		}
@@ -655,8 +659,10 @@ void bootLoadProcess(void){//bootload 执行程序
 				firmwareInfo.lcdAppCrc = crcUdisk;
 				epromWrite(CONFIG_EPROM_FWINFO_START, (uint8_t*)&firmwareInfo, sizeof(firmwareInfo));
 				printf("Bootloader:Update lcd app new crc32 sucess,wait lcd upgrade done\n");
-				HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
-				HAL_Delay(5000);HAL_Delay(5000);
+				HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
+				HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
+				HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
+				HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
 			}
 			bootLoadState = BT_STATE_RESET;
 			break;
