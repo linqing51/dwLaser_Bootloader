@@ -52,3 +52,4 @@ Mkfile.old
 dkms.conf
 STM32F407
 /MDK-ARM/MCU_Application
+/MDK-ARM/dwLaser_Bootloader
