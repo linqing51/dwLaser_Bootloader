@@ -108,13 +108,13 @@ typedef enum {
 	CLEAR_EPROM_LOG_INFO		= 0x06,
 }clarmEpromCmd_t;
 /*****************************************************************************/
-static uint32_t TmpReadSize = 0x00;
-static uint32_t RamAddress = 0x00;
+uint32_t TmpReadSize = 0x00;
+uint32_t RamAddress = 0x00;
 static __IO uint32_t LastPGAddress = APPLICATION_FLASH_START_ADDRESS;
-static uint8_t RAM_Buf[BUFFER_SIZE] = {0x00};//文件读写缓冲
+uint8_t RAM_Buf[BUFFER_SIZE] = {0x00};//文件读写缓冲
 /*****************************************************************************/
-static uint8_t gddcRxBuf[GDDC_RX_BUF_SIZE];//屏幕串口接收缓冲区
-static uint8_t gddcTxBuf[GDDC_TX_BUF_SIZE];//屏幕串口发送缓冲区
+uint8_t gddcRxBuf[GDDC_RX_BUF_SIZE];//屏幕串口接收缓冲区
+uint8_t gddcTxBuf[GDDC_TX_BUF_SIZE];//屏幕串口发送缓冲区
 /*****************************************************************************/
 extern I2C_HandleTypeDef hi2c1;
 extern UART_HandleTypeDef huart4;
@@ -317,13 +317,13 @@ static void softDelayMs(uint16_t ms){
 }
 /******************************************************************************/
 void bootLoadInit(void){//引导程序初始化
+	SET_AIM_PWM(GPIO_PIN_RESET);//关闭指示激光
 	SET_LAS_FAN(GPIO_PIN_SET);//打开激光器冷却风扇
 	SET_LAS_TEC(GPIO_PIN_RESET);//关闭制冷
 	SET_LAS_PWM0(GPIO_PIN_RESET);//关闭所有激光
 	SET_LAS_PWM1(GPIO_PIN_RESET);
 	SET_LAS_PWM2(GPIO_PIN_RESET);
 	SET_LAS_PWM3(GPIO_PIN_RESET);
-	SET_AIM_PWM(GPIO_PIN_SET);//关闭指示激光
 	SET_RED_LED(GPIO_PIN_RESET);//关闭所有LED
 	SET_GREEN_LED(GPIO_PIN_RESET);
 	SET_BLUE_LED(GPIO_PIN_RESET);
@@ -377,10 +377,10 @@ void bootLoadInit(void){//引导程序初始化
 		printf("Bootloader:INPUT->FSWITCH_NO    = Close!\n");
 	}
 	if(HAL_GPIO_ReadPin(INTERLOCK_NC_GPIO_Port, INTERLOCK_NC_Pin) == GPIO_PIN_SET){
-		printf("Bootloader:INPUT->INTLOCK       = Open!\n");
+		printf("Bootloader:INPUT->INTERLOCK     = Open!\n");
 	}
 	else{
-		printf("Bootloader:INPUT->INTLOCK       = Close!\n");
+		printf("Bootloader:INPUT->INTERLOCK     = Close!\n");
 	}
 	//显示输出IO状态
 	if(HAL_GPIO_ReadPin(LAS_PWM0_GPIO_Port, LAS_PWM0_Pin) == GPIO_PIN_SET){//LPA_PWM0
@@ -395,17 +395,17 @@ void bootLoadInit(void){//引导程序初始化
 	else{
 		printf("Bootloader:OUTPUT->LAS_PWM1     = Low!\n");
 	}
-	if(HAL_GPIO_ReadPin(LAS_PWM0_GPIO_Port, LAS_PWM0_Pin) == GPIO_PIN_SET){//LPB_PWM0
-		printf("Bootloader:OUTPUT->LAS_PWM0     = High!\n");
+	if(HAL_GPIO_ReadPin(LAS_PWM2_GPIO_Port, LAS_PWM2_Pin) == GPIO_PIN_SET){//LPB_PWM0
+		printf("Bootloader:OUTPUT->LAS_PWM2     = High!\n");
 	}
 	else{
-		printf("Bootloader:OUTPUT->LAS_PWM0     = Low!\n");
+		printf("Bootloader:OUTPUT->LAS_PWM2     = Low!\n");
 	}
-	if(HAL_GPIO_ReadPin(LAS_PWM1_GPIO_Port, LAS_PWM1_Pin) == GPIO_PIN_SET){//LPB_PWM1
-		printf("Bootloader:OUTPUT->LAS_PWM1     = High!\n");
+	if(HAL_GPIO_ReadPin(LAS_PWM3_GPIO_Port, LAS_PWM3_Pin) == GPIO_PIN_SET){//LPB_PWM1
+		printf("Bootloader:OUTPUT->LAS_PWM3     = High!\n");
 	}
 	else{
-		printf("Bootloader:OUTPUT->LAS_PWM1     = Low!\n");
+		printf("Bootloader:OUTPUT->LAS_PWM3     = Low!\n");
 	}
 	if(HAL_GPIO_ReadPin(AIM_PWM_GPIO_Port, AIM_PWM_Pin) == GPIO_PIN_SET){//LPC_PWM0
 		printf("Bootloader:OUTPUT->AIM_PWM      = High!\n");
@@ -443,8 +443,8 @@ void bootLoadProcess(void){//bootload 执行程序
 			printf("Bootloader:Start...............\n");
 			readStm32UniqueID();
 			printf("Bootloader:UniqueID->0x%08X%08X%08X\n", UniqueId[0], UniqueId[1], UniqueId[2]);
-			printf("Bootloader:Mcu flash size:%d Kbytes\n", cpuGetFlashSize());
-			printf("Bootloader:Ver:0x%08X Build:%s:%s\n", BOOTLOADER_VER, __DATE__, __TIME__);
+			printf("Bootloader:Mcu flash size->%d Kbytes\n", cpuGetFlashSize());
+			printf("Bootloader:Ver->0x%08X Build->%s:%s\n", BOOTLOADER_VER, __DATE__, __TIME__);
 			if(HAL_GPIO_ReadPin(INTERLOCK_NC_GPIO_Port, INTERLOCK_NC_Pin) == GPIO_PIN_SET &&//安全连锁未插入
 			   HAL_GPIO_ReadPin(FS_NC_GPIO_Port, FS_NC_Pin) == GPIO_PIN_RESET &&//脚踏插入
 			   HAL_GPIO_ReadPin(FS_NO_GPIO_Port, FS_NO_Pin) == GPIO_PIN_RESET){//脚踏踩下
@@ -609,6 +609,8 @@ void bootLoadProcess(void){//bootload 执行程序
 			//等待60秒 LCD FLASH写入完成后重启
 			HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
 			HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
+			HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
+			HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
 			bootLoadState = BT_STATE_RESET;//更新APP
 			break;
 		}
@@ -644,7 +646,8 @@ void bootLoadProcess(void){//bootload 执行程序
 				//等待60秒 LCD FLASH写入完成后重启
 				HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
 				HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
-				
+				HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
+				HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
 			}
 			bootLoadState = BT_STATE_RESET;
 			break;
@@ -966,6 +969,8 @@ static void beepDiag(uint8_t diag){//蜂鸣器诊断声音 摩尔斯电码
 }
 static void bootLoadFailHandler(uint8_t ftype){//引导错误程序
 	MX_DriverVbusFS(FALSE);//关闭USB VBUS
+	SET_ERR_LED(GPIO_PIN_RESET);
+	printf("Bootloader:SYS_ERR_LED->On!\n");
 	SET_GREEN_LED(GPIO_PIN_RESET);
 	SET_BLUE_LED(GPIO_PIN_RESET);
 	SET_RED_LED(GPIO_PIN_RESET);
@@ -1119,6 +1124,7 @@ static uint32_t getNewLcdAppCrc(void){//获取待更新LCD APP CRC16
 	if(retUsbH != FR_OK){//读取失败
 		bootLoadFailHandler(BT_FAIL_READ_LLCD_APP);			
 	}
+	f_lseek(&LcdFile, 0);//读取指针移动到开头
 	crc32 = 0;
 	crc32Clear();
 	while(readflag){
@@ -1220,6 +1226,7 @@ static uint32_t updateLcdApp(void){//更新LCD APP
 	if(retUsbH != FR_OK){//读取失败
 		bootLoadFailHandler(BT_FAIL_READ_LLCD_APP);
 	}
+	f_lseek(&LcdFile, 0);//读取指针移动到开头
 	printf("Bootloader:Open %s sucess,ECODE=0x%02XH.\n", LLCD_FIRMWARE_FILENAME, retUsbH);
 	for(baudrateSelect = 0; baudrateSelect < (sizeof(baudrateTable) / 4); baudrateSelect ++){//波特率测试，握手		
 		if(baudrateSelect >= (sizeof(baudrateTable) / 4)){
@@ -1249,11 +1256,7 @@ static uint32_t updateLcdApp(void){//更新LCD APP
 		}
 	}
 	dp_display_text_num(preCmd, sizeof(preCmd));
-	retUsbH = f_open(&LcdFile, LLCD_FIRMWARE_FILENAME, FA_OPEN_EXISTING | FA_READ);
-	if(retUsbH != FR_OK){//读取失败
-		bootLoadFailHandler(BT_FAIL_READ_LLCD_APP);
-	}
-    fileSize =  f_size(&LcdFile);   
+    fileSize =  f_size(&LcdFile);
     //文件大小
 	cmd[2] = (fileSize >> 24) & 0xff;
 	cmd[3] = (fileSize >> 16) & 0xff;
@@ -1307,7 +1310,7 @@ static uint32_t updateLcdApp(void){//更新LCD APP
 		gddcTxBuf[0] = signName;
 		gddcTxBuf[1] = ~signName;
         //读取2048个字节但不超过文件大小
-         transferByte = blockSize;
+        transferByte = blockSize;
 		if(fileIndex + transferByte > fileSize){
 			transferByte = fileSize - fileIndex;
 		}
@@ -1625,17 +1628,6 @@ static void clearEprom(clarmEpromCmd_t cmd){//清除EPROM内容
 				epromWriteByte(i, var);
 			}
 			printf("Bootloader->:Erase eprom log info sucess!\n");
-			break;
-		}
-		case CLEAR_EPROM_NVRAM:{
-			for(i = CONFIG_EPROM_LOGINFO_START;i <= CONFIG_EPROM_NVRAM_END;i ++){
-				epromWriteByte(i, var);
-			}
-			printf("Bootloader->:Erase eprom nvram sucess!\n");
-			for(i = CONFIG_EPROM_FDRAM_START;i <= CONFIG_EPROM_FDRAM_END;i ++){
-				epromWriteByte(i, var);
-			}
-			printf("Bootloader->:Erase eprom fdram info sucess!\n");
 			break;
 		}
 		default:break;
