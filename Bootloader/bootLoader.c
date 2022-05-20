@@ -45,7 +45,7 @@
 #define GDDC_LCD_UPDATE_BAUDRATE			(115200UL)//LCD串口屏更新波特率
 /*****************************************************************************/
 #define GDDC_UART_HANDLE							huart4
-#define GDDC_UART_IRQ									UART4_IRQn
+#define GDDC_UART_IRQ								UART4_IRQn
 #define GDDC_RX_BUF_SIZE							128
 #define GDDC_TX_BUF_SIZE							(2048 + 4)
 #define GDDC_HEX 											0
@@ -54,11 +54,11 @@
 #define GDDC_RX_TIMEOUT								0xFFFF
 #define GDDC_TX_TIMEOUT								0xFFFF
 #define GDDC_RETRY_TIMES							10//发送重试次数
-#define GDDC_UPDATE_BAUDRATE					115200//不改变波特率
+#define GDDC_UPDATE_BAUDRATE						115200//不改变波特率
 /*****************************************************************************/
-#define MORSECODE_SPACE_TIME					3000
-#define MORSECODE_LONG_TIME						900
-#define MORSECODE_SHORT_TIME					300
+#define MORSECODE_SPACE_TIME						3000
+#define MORSECODE_LONG_TIME							900
+#define MORSECODE_SHORT_TIME						300
 /*****************************************************************************/
 #define SET_LAS_TEC(b)								HAL_GPIO_WritePin(LAS_TEC_GPIO_Port, LAS_TEC_Pin, b)
 #define FLIP_LAS_TEC()								HAL_GPIO_TogglePin(LAS_TEC_GPIO_Port, LAS_TEC_Pin)
@@ -445,6 +445,8 @@ void bootLoadProcess(void){//bootload 执行程序
 			printf("Bootloader:UniqueID->0x%08X%08X%08X\n", UniqueId[0], UniqueId[1], UniqueId[2]);
 			printf("Bootloader:Mcu flash size->%d Kbytes\n", cpuGetFlashSize());
 			printf("Bootloader:Ver->0x%08X Build->%s:%s\n", BOOTLOADER_VER, __DATE__, __TIME__);
+			printf("Bootloader:Bootload Start:0x%08X,End:0x%08X,Size:0x%08X\n", BOOTLOADER_FLASH_START_ADDRESS, BOOTLOADER_FLASH_END_ADDRESS ,BOOTLOADER_FLASH_SIZE);
+			printf("Bootloader:Applicent Start:0x%08X,End:0x%08X,Size:0x%08X\n", APPLICATION_FLASH_START_ADDRESS, APPLICATION_FLASH_END_ADDRESS, APPLICATION_FLASH_SIZE);
 			if(HAL_GPIO_ReadPin(INTERLOCK_NC_GPIO_Port, INTERLOCK_NC_Pin) == GPIO_PIN_SET &&//安全连锁未插入
 			   HAL_GPIO_ReadPin(FS_NC_GPIO_Port, FS_NC_Pin) == GPIO_PIN_RESET &&//脚踏插入
 			   HAL_GPIO_ReadPin(FS_NO_GPIO_Port, FS_NO_Pin) == GPIO_PIN_RESET){//脚踏踩下
