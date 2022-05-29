@@ -18,8 +18,10 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "crc.h"
 #include "fatfs.h"
 #include "i2c.h"
+#include "rng.h"
 #include "usart.h"
 #include "usb_host.h"
 #include "gpio.h"
@@ -95,6 +97,8 @@ resetInit();
   MX_USART1_UART_Init();
   MX_FATFS_Init();
   MX_USB_HOST_Init();
+  MX_CRC_Init();
+  MX_RNG_Init();
   /* USER CODE BEGIN 2 */
 	bootLoadInit();
 	HAL_FLASH_Unlock();

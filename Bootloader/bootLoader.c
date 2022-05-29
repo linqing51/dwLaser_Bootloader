@@ -5,52 +5,52 @@
 //SECTOR2->16K:BOOTLOADER
 //SECTOR3->16K:BOOTLOADER
 /*****************************************************************************/
-#define BT_STATE_IDLE						0//空闲
-#define BT_STATE_LOAD_FWINFO				1//EPROM载入固件信息
-#define BT_STATE_USBHOST_INIT				2//FATFS 初始化
-#define BT_STATE_WAIT_UDISK					3//等待USB DISK就绪
-#define BT_STATE_READ_CFG					4//读取配置文件
-#define BT_STATE_UPDATE_MCU_BOT				5//更新BOOTLOAD
-#define BT_STATE_UPDATE_MCU_APP				6//更新单片机应用固件
-#define BT_STATE_UPDATE_LCD_APP				7//更新屏幕应用固件
-#define BT_STATE_UPDATE_BOTH_APP			8//更新单片机和屏固件
-#define BT_STATE_UPDATE_EPROM				9//更新UDISK->EPROM
-#define BT_STATE_DUMP_EPROM					10//储存全部EPROM到UDISK
-#define BT_STATE_CLEAT_ALL					11//清除FLASH和EPROM全部
-#define BT_STATE_RESET						90//重启
-#define BT_STATE_RUN_APP					99//跳转到APP应用程序
+#define BT_STATE_IDLE								0//空闲
+#define BT_STATE_LOAD_FWINFO						1//EPROM载入固件信息
+#define BT_STATE_USBHOST_INIT						2//FATFS 初始化
+#define BT_STATE_WAIT_UDISK							3//等待USB DISK就绪
+#define BT_STATE_READ_CFG							4//读取配置文件
+#define BT_STATE_UPDATE_MCU_BOT						5//更新BOOTLOAD
+#define BT_STATE_UPDATE_MCU_APP						6//更新单片机应用固件
+#define BT_STATE_UPDATE_LCD_APP						7//更新屏幕应用固件
+#define BT_STATE_UPDATE_BOTH_APP					8//更新单片机和屏固件
+#define BT_STATE_UPDATE_EPROM						9//更新UDISK->EPROM
+#define BT_STATE_DUMP_EPROM							10//储存全部EPROM到UDISK
+#define BT_STATE_CLEAT_ALL							11//清除FLASH和EPROM全部
+#define BT_STATE_RESET								90//重启
+#define BT_STATE_RUN_APP							99//跳转到APP应用程序
 /*****************************************************************************/
-#define BT_FAIL_READ_CFG					'0'//从U盘读取CFG失败
-#define BT_FAIL_READ_LMCU_APP				'1'//从U盘读取MCU APP失败
-#define BT_FAIL_READ_LLCD_APP				'2'//从U盘读取LCD APP失败
-#define BT_FAIL_READ_LEROM_BIN				'3'//从U盘读取EPROM BIN失败
-#define BT_FAIL_WRITE_SEROM_BIN				'4'//向U盘写入EPROM BIN失败
-#define BT_FAIL_ERASE_MCU_APP				'5'//擦除FLASH失败
-#define BT_FAIL_READ_EPROM					'6'//读取EPROM失败
-#define BT_FAIL_WRITE_EPROM					'7'//写入EPROM失败
-#define BT_FAIL_LMCU_APP_CHECK				'8'//ld_mcu.bin CRC检查错误
-#define BT_FAIL_LMCU_BOT_CHECK				'9'//ld_bot.bin CRC检查错误
-#define BT_FAIL_LLCD_APP_CHECK				'A'//ld_lcd.bin CRC检查错误
-#define BT_FAIL_CHECKSUM_MCU_APP_FLASH		'B'//校验 mcu app 错误
-#define BT_FAIL_WRITE_MCU_APP_FLASH			'C'//写mcu app flash错误
-#define BT_FAIL_LCD_NOT_RESPOND				'D'//LCD串口通信超时或错误
-#define BT_FAIL_LCD_DOWNLOAD				'E'//LCD下载失败
-#define BT_FAIL_VECTOR_TABLE_INVALID		'F'//APP 向量表错误
-#define BT_FAIL_CHECK_BLANK					'G'//FLASH查空错误
-#define BT_DONE_CLEAR_ALL					'H'//FLASH和EPROM清除完成
-#define BT_DONE_UPDATE_EPROM				'I'//更新EPROM完成
-#define BT_DONE_DUMP_EPROM					'J'//下载EPROM完成
+#define BT_FAIL_READ_CFG							'0'//从U盘读取CFG失败
+#define BT_FAIL_READ_LMCU_APP						'1'//从U盘读取MCU APP失败
+#define BT_FAIL_READ_LLCD_APP						'2'//从U盘读取LCD APP失败
+#define BT_FAIL_READ_LEROM_BIN						'3'//从U盘读取EPROM BIN失败
+#define BT_FAIL_WRITE_SEROM_BIN						'4'//向U盘写入EPROM BIN失败
+#define BT_FAIL_ERASE_MCU_APP						'5'//擦除FLASH失败
+#define BT_FAIL_READ_EPROM							'6'//读取EPROM失败
+#define BT_FAIL_WRITE_EPROM							'7'//写入EPROM失败
+#define BT_FAIL_LMCU_APP_CHECK						'8'//ld_mcu.bin CRC检查错误
+#define BT_FAIL_LMCU_BOT_CHECK						'9'//ld_bot.bin CRC检查错误
+#define BT_FAIL_LLCD_APP_CHECK						'A'//ld_lcd.bin CRC检查错误
+#define BT_FAIL_CHECKSUM_MCU_APP_FLASH				'B'//校验 mcu app 错误
+#define BT_FAIL_WRITE_MCU_APP_FLASH					'C'//写mcu app flash错误
+#define BT_FAIL_LCD_NOT_RESPOND						'D'//LCD串口通信超时或错误
+#define BT_FAIL_LCD_DOWNLOAD						'E'//LCD下载失败
+#define BT_FAIL_VECTOR_TABLE_INVALID				'F'//APP 向量表错误
+#define BT_FAIL_CHECK_BLANK							'G'//FLASH查空错误
+#define BT_DONE_CLEAR_ALL							'H'//FLASH和EPROM清除完成
+#define BT_DONE_UPDATE_EPROM						'I'//更新EPROM完成
+#define BT_DONE_DUMP_EPROM							'J'//下载EPROM完成
 /*****************************************************************************/
-#define GDDC_LCD_NORMAL_BAUDRATE			(115200UL)//LCD串口屏正常波特率
-#define GDDC_LCD_UPDATE_BAUDRATE			(115200UL)//LCD串口屏更新波特率
+#define GDDC_LCD_NORMAL_BAUDRATE					(115200UL)//LCD串口屏正常波特率
+#define GDDC_LCD_UPDATE_BAUDRATE					(115200UL)//LCD串口屏更新波特率
 /*****************************************************************************/
 #define GDDC_UART_HANDLE							huart4
 #define GDDC_UART_IRQ								UART4_IRQn
 #define GDDC_RX_BUF_SIZE							128
 #define GDDC_TX_BUF_SIZE							(2048 + 4)
-#define GDDC_HEX 											0
-#define GDDC_DEC 											1 
-#define GDDC_CHR 											2
+#define GDDC_HEX 									0
+#define GDDC_DEC 									1 
+#define GDDC_CHR 									2
 #define GDDC_RX_TIMEOUT								0xFFFF
 #define GDDC_TX_TIMEOUT								0xFFFF
 #define GDDC_RETRY_TIMES							10//发送重试次数
@@ -87,26 +87,17 @@
 #define SET_GREEN_LED(b)							HAL_GPIO_WritePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin, b)
 #define FLIP_GREEN_LED()							HAL_GPIO_TogglePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin)
 
-#define SET_BLUE_LED(b)							HAL_GPIO_WritePin(BLUE_LED_GPIO_Port, BLUE_LED_Pin, b)
-#define FLIP_BLUE_LED()							HAL_GPIO_TogglePin(BLUE_LED_GPIO_Port, BLUE_LED_Pin)
+#define SET_BLUE_LED(b)								HAL_GPIO_WritePin(BLUE_LED_GPIO_Port, BLUE_LED_Pin, b)
+#define FLIP_BLUE_LED()								HAL_GPIO_TogglePin(BLUE_LED_GPIO_Port, BLUE_LED_Pin)
 
-#define SET_TICK_LED(b)							HAL_GPIO_WritePin(TICK_LED_GPIO_Port, TICK_LED_Pin, b)
-#define FLIP_TICK_LED()							HAL_GPIO_TogglePin(TICK_LED_GPIO_Port, TICK_LED_Pin)
+#define SET_TICK_LED(b)								HAL_GPIO_WritePin(TICK_LED_GPIO_Port, TICK_LED_Pin, b)
+#define FLIP_TICK_LED()								HAL_GPIO_TogglePin(TICK_LED_GPIO_Port, TICK_LED_Pin)
 
 #define SET_ERR_LED(b)								HAL_GPIO_WritePin(ERR_LED_GPIO_Port, ERR_LED_Pin, b)
-#define FLIP_ERR_LED(b)							HAL_GPIO_TogglePin(ERR_LED_GPIO_Port, ERR_LED_Pin)
+#define FLIP_ERR_LED(b)								HAL_GPIO_TogglePin(ERR_LED_GPIO_Port, ERR_LED_Pin)
 
 #define SET_AIM_PWM(b)								HAL_GPIO_WritePin(AIM_PWM_GPIO_Port, AIM_PWM_Pin, b)
 #define FLIP_AIM_PWM()								HAL_GPIO_TogglePin(AIM_PWM_GPIO_Port, AIM_PWM_Pin)
-/*****************************************************************************/
-typedef enum {
-	CLEAR_EPROM_ALL 			= 0x01,
-	CLEAR_EPROM_NVRAM			= 0x02,
-	CLEAR_EPROM_FDRAM			= 0x03,
-	CLEAR_EPROM_FIRMWARE_INFO	= 0x04,
-	CLEAR_EPROM_DEVICE_CONFIG	= 0x05,
-	CLEAR_EPROM_LOG_INFO		= 0x06,
-}clarmEpromCmd_t;
 /*****************************************************************************/
 uint32_t TmpReadSize = 0x00;
 uint32_t RamAddress = 0x00;
@@ -140,57 +131,10 @@ uint8_t usbReady;//USB DISK就绪
 int32_t releaseTime0, releaseTime1, overTime, releaseCounter;
 uint32_t JumpAddress;
 pFunction Jump_To_Application;
-static uint32_t oldcrc32;
-const uint32_t crc32Tab[] = { /* CRC polynomial 0xedb88320 */
-	0x00000000, 0x77073096, 0xee0e612c, 0x990951ba, 0x076dc419, 0x706af48f,
-	0xe963a535, 0x9e6495a3, 0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988,
-	0x09b64c2b, 0x7eb17cbd, 0xe7b82d07, 0x90bf1d91, 0x1db71064, 0x6ab020f2,
-	0xf3b97148, 0x84be41de, 0x1adad47d, 0x6ddde4eb, 0xf4d4b551, 0x83d385c7,
-	0x136c9856, 0x646ba8c0, 0xfd62f97a, 0x8a65c9ec, 0x14015c4f, 0x63066cd9,
-	0xfa0f3d63, 0x8d080df5, 0x3b6e20c8, 0x4c69105e, 0xd56041e4, 0xa2677172,
-	0x3c03e4d1, 0x4b04d447, 0xd20d85fd, 0xa50ab56b, 0x35b5a8fa, 0x42b2986c,
-	0xdbbbc9d6, 0xacbcf940, 0x32d86ce3, 0x45df5c75, 0xdcd60dcf, 0xabd13d59,
-	0x26d930ac, 0x51de003a, 0xc8d75180, 0xbfd06116, 0x21b4f4b5, 0x56b3c423,
-	0xcfba9599, 0xb8bda50f, 0x2802b89e, 0x5f058808, 0xc60cd9b2, 0xb10be924,
-	0x2f6f7c87, 0x58684c11, 0xc1611dab, 0xb6662d3d, 0x76dc4190, 0x01db7106,
-	0x98d220bc, 0xefd5102a, 0x71b18589, 0x06b6b51f, 0x9fbfe4a5, 0xe8b8d433,
-	0x7807c9a2, 0x0f00f934, 0x9609a88e, 0xe10e9818, 0x7f6a0dbb, 0x086d3d2d,
-	0x91646c97, 0xe6635c01, 0x6b6b51f4, 0x1c6c6162, 0x856530d8, 0xf262004e,
-	0x6c0695ed, 0x1b01a57b, 0x8208f4c1, 0xf50fc457, 0x65b0d9c6, 0x12b7e950,
-	0x8bbeb8ea, 0xfcb9887c, 0x62dd1ddf, 0x15da2d49, 0x8cd37cf3, 0xfbd44c65,
-	0x4db26158, 0x3ab551ce, 0xa3bc0074, 0xd4bb30e2, 0x4adfa541, 0x3dd895d7,
-	0xa4d1c46d, 0xd3d6f4fb, 0x4369e96a, 0x346ed9fc, 0xad678846, 0xda60b8d0,
-	0x44042d73, 0x33031de5, 0xaa0a4c5f, 0xdd0d7cc9, 0x5005713c, 0x270241aa,
-	0xbe0b1010, 0xc90c2086, 0x5768b525, 0x206f85b3, 0xb966d409, 0xce61e49f,
-	0x5edef90e, 0x29d9c998, 0xb0d09822, 0xc7d7a8b4, 0x59b33d17, 0x2eb40d81,
-	0xb7bd5c3b, 0xc0ba6cad, 0xedb88320, 0x9abfb3b6, 0x03b6e20c, 0x74b1d29a,
-	0xead54739, 0x9dd277af, 0x04db2615, 0x73dc1683, 0xe3630b12, 0x94643b84,
-	0x0d6d6a3e, 0x7a6a5aa8, 0xe40ecf0b, 0x9309ff9d, 0x0a00ae27, 0x7d079eb1,
-	0xf00f9344, 0x8708a3d2, 0x1e01f268, 0x6906c2fe, 0xf762575d, 0x806567cb,
-	0x196c3671, 0x6e6b06e7, 0xfed41b76, 0x89d32be0, 0x10da7a5a, 0x67dd4acc,
-	0xf9b9df6f, 0x8ebeeff9, 0x17b7be43, 0x60b08ed5, 0xd6d6a3e8, 0xa1d1937e,
-	0x38d8c2c4, 0x4fdff252, 0xd1bb67f1, 0xa6bc5767, 0x3fb506dd, 0x48b2364b,
-	0xd80d2bda, 0xaf0a1b4c, 0x36034af6, 0x41047a60, 0xdf60efc3, 0xa867df55,
-	0x316e8eef, 0x4669be79, 0xcb61b38c, 0xbc66831a, 0x256fd2a0, 0x5268e236,
-	0xcc0c7795, 0xbb0b4703, 0x220216b9, 0x5505262f, 0xc5ba3bbe, 0xb2bd0b28,
-	0x2bb45a92, 0x5cb36a04, 0xc2d7ffa7, 0xb5d0cf31, 0x2cd99e8b, 0x5bdeae1d,
-	0x9b64c2b0, 0xec63f226, 0x756aa39c, 0x026d930a, 0x9c0906a9, 0xeb0e363f,
-	0x72076785, 0x05005713, 0x95bf4a82, 0xe2b87a14, 0x7bb12bae, 0x0cb61b38,
-	0x92d28e9b, 0xe5d5be0d, 0x7cdcefb7, 0x0bdbdf21, 0x86d3d2d4, 0xf1d4e242,
-	0x68ddb3f8, 0x1fda836e, 0x81be16cd, 0xf6b9265b, 0x6fb077e1, 0x18b74777,
-	0x88085ae6, 0xff0f6a70, 0x66063bca, 0x11010b5c, 0x8f659eff, 0xf862ae69,
-	0x616bffd3, 0x166ccf45, 0xa00ae278, 0xd70dd2ee, 0x4e048354, 0x3903b3c2,
-	0xa7672661, 0xd06016f7, 0x4969474d, 0x3e6e77db, 0xaed16a4a, 0xd9d65adc,
-	0x40df0b66, 0x37d83bf0, 0xa9bcae53, 0xdebb9ec5, 0x47b2cf7f, 0x30b5ffe9,
-	0xbdbdf21c, 0xcabac28a, 0x53b39330, 0x24b4a3a6, 0xbad03605, 0xcdd70693,
-	0x54de5729, 0x23d967bf, 0xb3667a2e, 0xc4614ab8, 0x5d681b02, 0x2a6f2b94,
-	0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d
-};
 /*****************************************************************************/
 static void bootLoadFailHandler(uint8_t ftype);//引导故障程序
 static uint32_t updateMcuApp(void);
 static uint32_t updateLcdApp(void);
-static void checkBlank(uint32_t adr, uint32_t size);
 static void DBGU_Printk(uint8_t *buffer);
 static void DBGU_Printk_num(uint8_t *buffer, uint16_t datanum);
 static void dp_display_text(uint8_t *text);
@@ -204,21 +148,9 @@ static void clearFlash(void);
 static uint32_t getOriginAppCrc(void);
 static uint32_t getNewMcuAppCrc(void);
 static uint32_t getNewLcdAppCrc(void);
-static void clearEprom(clarmEpromCmd_t cmd);//清除EPROM内容
 static void updateEprom(void);
 static void dumpEprom(void);
-/*****************************************************************************/
-static uint32_t crc32Calculate(uint8_t *buf, uint32_t len);//CRC32 计算数组
-static uint32_t crc32CalculateAdd(uint8_t dat);//CRC32计算连续字节
-static void crc32Clear(void);//CRC32清楚计算值
-static void crc32SetCrcOld(uint32_t old);//CRC32设置计算值
-/*****************************************************************************/
 static void softDelayMs(uint16_t ms);
-/*****************************************************************************/
-static HAL_StatusTypeDef epromReadByte(uint16_t ReadAddr, uint8_t *rdat);//在AT24CXX指定地址读出一个数据
-static HAL_StatusTypeDef epromWriteByte(uint16_t WriteAddr, uint8_t wdat);//在AT24CXX指定地址写入8位数据
-static HAL_StatusTypeDef epromRead(uint16_t ReadAddr, uint8_t *pBuffer, uint16_t NumToRead);
-static HAL_StatusTypeDef epromWrite(uint16_t WriteAddr, uint8_t *pBuffer, uint16_t NumToWrite);
 /*****************************************************************************/
 //HAL 初始化
 static void UsbGpioReset(void){//模拟USB拔插动作并关闭VBUS供电
@@ -291,24 +223,6 @@ void resetInit(void){//复位后初始化
 	__enable_irq();
 }
 /*****************************************************************************/
-//CRC32计算程序
-static uint32_t crc32Calculate(uint8_t *buf, uint32_t len){//CRC32 计算数组
-    uint32_t i;  
-    for (i = 0; i < len; i++){  
-       oldcrc32 = crc32Tab[(oldcrc32 ^ buf[i]) & 0xff] ^ (oldcrc32 >> 8);  
-    }  
-	return (oldcrc32 ^ 0xFFFFFFFF);  
-}
-static uint32_t crc32CalculateAdd(uint8_t dat){//CRC32计算连续字节
-	oldcrc32 = crc32Tab[(oldcrc32 ^ dat) & 0xff] ^ (oldcrc32 >> 8);
-	return (oldcrc32 ^ 0xFFFFFFFF);
-}
-static void crc32Clear(void){//CRC32清楚计算值
-	oldcrc32 = 0xFFFFFFFF;
-}
-static void crc32SetCrcOld(uint32_t old){//CRC32设置计算值
-	oldcrc32 = old;
-}
 static void softDelayMs(uint16_t ms){
 	uint32_t i;
 	for(i = 0;i < 1000;i ++){
@@ -432,6 +346,7 @@ void bootLoadProcess(void){//bootload 执行程序
 	HAL_StatusTypeDef ret;
 	uint8_t fileBuff[64];
 	uint32_t crcFlash, crcUdisk;
+	uint32_t crcEpromMcu, crcEpromLcd;//EPROM中储存的CRC记录值
 	uint32_t brByte;//实际读取的字节数
 	//uint32_t bwByte;//实际写入的字节数
 	//注册一个FATFS文件系统
@@ -439,9 +354,24 @@ void bootLoadProcess(void){//bootload 执行程序
 		case BT_STATE_IDLE:{//开机等待U盘识别                             
 			SET_GREEN_LED(GPIO_PIN_SET);
 			SET_BLUE_LED(GPIO_PIN_RESET);
-			SET_RED_LED(GPIO_PIN_RESET);
+			SET_RED_LED(GPIO_PIN_RESET);	
 			printf("Bootloader:Start...............\n");
+			listEpromTable();
 			readStm32UniqueID();
+			ret = epromReadDword(CONFIG_EPROM_MCU_FW_CRC, &crcEpromMcu);//从EPROM载入设备配置
+			if(ret == HAL_OK){
+				printf("Bootloader:Read eprom MCU FW CRC32:0x%08X\n", crcEpromMcu);
+			}
+			else{
+				printf("Bootloader:Read eprom MCU FW CRC32 fail!\n");
+			}
+			ret = epromReadDword(CONFIG_EPROM_LCD_FW_CRC, &crcEpromLcd);//从EPROM载入设备配置
+			if(ret == HAL_OK){
+				printf("Bootloader:Read eprom LCD FW CRC32:0x%08X\n", crcEpromLcd);
+			}
+			else{
+				printf("Bootloader:Read eprom LCD FW CRC32 fail!\n");
+			}			
 			printf("Bootloader:UniqueID->0x%08X%08X%08X\n", UniqueId[0], UniqueId[1], UniqueId[2]);
 			printf("Bootloader:Mcu flash size->%d Kbytes\n", cpuGetFlashSize());
 			printf("Bootloader:Ver->0x%08X Build->%s:%s\n", BOOTLOADER_VER, __DATE__, __TIME__);
@@ -458,7 +388,6 @@ void bootLoadProcess(void){//bootload 执行程序
 			break;
 		}
 		case BT_STATE_LOAD_FWINFO:{
-			ret = epromRead(CONFIG_EPROM_FWINFO_START, (uint8_t*)&firmwareInfo, sizeof(firmwareInfo));//从EPROM载入设备配置
 			if(ret == HAL_OK){
 				bootLoadState = BT_STATE_USBHOST_INIT;
 				printf("Bootloader:Load eprom done!\n");
@@ -577,7 +506,7 @@ void bootLoadProcess(void){//bootload 执行程序
 		case BT_STATE_UPDATE_MCU_APP:{//更新ld_mcu.bin
 			crcFlash = getOriginAppCrc();//计算FLASH中APP固件CRC32
 			crcUdisk = getNewMcuAppCrc();//计算U盘中MCU APP固件CRC32
-			if((crcUdisk == firmwareInfo.mucAppCrc) && (crcFlash == firmwareInfo.mucAppCrc)){//校验码相同跳过更新
+			if((crcUdisk == crcEpromMcu) && (crcFlash == crcEpromMcu)){//校验码相同跳过更新
 				printf("Bootloader:Check mcu app crc same,skip!\n");
 				bootLoadState = BT_STATE_RESET;
 				break;
@@ -589,8 +518,7 @@ void bootLoadProcess(void){//bootload 执行程序
 			}
 			else{
 				printf("Bootloader:Checksum mcu app sucess.\n");
-				firmwareInfo.mucAppCrc = crcFlash;//CRC值写入EPROM
-				epromWrite(CONFIG_EPROM_FWINFO_START, (uint8_t*)&firmwareInfo, sizeof(firmwareInfo));
+				epromWriteDword(CONFIG_EPROM_MCU_FW_CRC, &crcEpromMcu);
 				clearEprom(CLEAR_EPROM_NVRAM);//清除NVRAM掉电储存区
 				printf("Bootloader:Update new crc32 sucess.\n");
 			}
@@ -599,14 +527,14 @@ void bootLoadProcess(void){//bootload 执行程序
 		}
 		case BT_STATE_UPDATE_LCD_APP:{//更新LCD应用程序			
 			crcUdisk = getNewLcdAppCrc();//计算U盘中MCU APP固件CRC32
-			if(crcUdisk == firmwareInfo.lcdAppCrc){//校验码相同跳过更新
+			if(crcUdisk == crcEpromLcd){//校验码相同跳过更新
 				printf("Bootloader:Check lcd app crc same,skip!\n");
 				bootLoadState = BT_STATE_RUN_APP;
 				break;
 			}
 			crcUdisk = updateLcdApp();
-			firmwareInfo.lcdAppCrc = crcUdisk;//更新EPROM中LCD APP CRC值
-			epromWrite(CONFIG_EPROM_FWINFO_START, (uint8_t*)&firmwareInfo, sizeof(firmwareInfo));
+			crcEpromLcd = crcUdisk;//更新EPROM中LCD APP CRC值
+			epromWriteDword(CONFIG_EPROM_LCD_FW_CRC, &crcEpromLcd);
 			printf("Bootloader:Update lcd app new crc32 sucess,wait 60s lcd upgrade done\n");
 			//等待60秒 LCD FLASH写入完成后重启
 			HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
@@ -620,7 +548,7 @@ void bootLoadProcess(void){//bootload 执行程序
 			//MCU 更新
 			crcFlash = getOriginAppCrc();//计算FLASH中APP固件CRC32
 			crcUdisk = getNewMcuAppCrc();//计算U盘中MCU APP固件CRC32
-			if((crcUdisk == firmwareInfo.mucAppCrc) && (crcFlash == firmwareInfo.mucAppCrc)){//校验码相同跳过更新
+			if((crcUdisk == crcEpromMcu) && (crcFlash == crcEpromMcu)){//校验码相同跳过更新
 				printf("Bootloader:Check mcu app crc same,skip!\n");
 			}
 			else{//从U盘更新固件
@@ -629,21 +557,21 @@ void bootLoadProcess(void){//bootload 执行程序
 				if(crcUdisk != crcFlash){
 					bootLoadFailHandler(BT_FAIL_CHECKSUM_MCU_APP_FLASH);
 				}
-				firmwareInfo.mucAppCrc = crcFlash;//CRC值写入EPROM
+				crcEpromMcu = crcFlash;//CRC值写入EPROM
 				printf("Bootloader:Check mcu app sucess.\n");
-				epromWrite(CONFIG_EPROM_FWINFO_START, (uint8_t*)&firmwareInfo, sizeof(firmwareInfo));
+				epromWriteDword(CONFIG_EPROM_MCU_FW_CRC, &crcEpromMcu);
 				clearEprom(CLEAR_EPROM_NVRAM);
 				printf("Bootloader:Update mcu app new crc32 sucess.\n");
 			}
 			//LCD 更新
 			crcUdisk = getNewLcdAppCrc();//计算U盘中MCU APP固件CRC32
-			if(crcUdisk == firmwareInfo.lcdAppCrc){//校验码相同跳过更新
+			if(crcUdisk == crcEpromLcd){//校验码相同跳过更新
 				printf("Bootloader:Check lcd app crc same,skip!\n");
 			}
 			else{
 				updateLcdApp();
-				firmwareInfo.lcdAppCrc = crcUdisk;
-				epromWrite(CONFIG_EPROM_FWINFO_START, (uint8_t*)&firmwareInfo, sizeof(firmwareInfo));
+				crcEpromLcd = crcUdisk;
+				epromWriteDword(CONFIG_EPROM_LCD_FW_CRC, &crcEpromLcd);
 				printf("Bootloader:Update lcd app new crc32 sucess,wait 60s lcd upgrade done\n");
 				//等待60秒 LCD FLASH写入完成后重启
 				HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
@@ -1466,176 +1394,5 @@ static void dp_display_array(uint8_t *value, int bytes, int descriptive){
         }
     }
 }
-/*****************************************************************************/
-//MCU FLASH处理
-static void checkBlank(uint32_t adr, uint32_t size){//MCU Flash 查空
-	uint8_t val;
-	uint32_t i;
-	for(i = 0;i < size;i ++){
-		val = *(__IO uint8_t*)(adr + i);
-		if(val != 0xFF){
-			bootLoadFailHandler(BT_FAIL_CHECK_BLANK);
-		}
-	}
-}
-/*****************************************************************************/
-//EEPROM 读写程序
-static HAL_StatusTypeDef epromReadByte(uint16_t ReadAddr, uint8_t *rdat){//在指定地址读出8位数据
-//ReadAddr:开始读数的地址  
-//返回值  :数据				  
-	HAL_StatusTypeDef ret;
-	if(ReadAddr > (CONFIG_EPROM_SIZE - 1)){//写地址超过容量
-		ret = HAL_ERROR;
-		return ret;
-	}	
-	ret = HAL_I2C_Mem_Read(&hi2c1,
-	                       CONFIG_EPROM_READ_ADDR,
-	                       ReadAddr,
-	                       I2C_MEMADD_SIZE_16BIT,
-	                       (uint8_t*)(rdat),
-	                       1,
-	                       CONFIG_EPROM_TIMEOUT);
-	if(ret != HAL_OK){
-		ret = HAL_I2C_DeInit(&hi2c1);//释放IO口为GPIO，复位句柄状态标志
-		ret = HAL_I2C_Init(&hi2c1);//这句重新初始化I2C控制器
-		printf("sPlc->sPlcEprom:Eprom read byte fail!\n");
-	}
-	return ret;
-}
-static HAL_StatusTypeDef epromWriteByte(uint16_t WriteAddr, uint8_t wdat){//在指定地址写入8位数据
-//WriteAddr  :写入数据的目的地址    
-//DataToWrite:要写入的数据				   	  	    																 
-	HAL_StatusTypeDef ret;
-	if(WriteAddr > (CONFIG_EPROM_SIZE - 1)){//写地址超过容量
-		ret = HAL_ERROR;
-		return ret;
-	}
-	ret = HAL_I2C_Mem_Write(&hi2c1, 
-	                        CONFIG_EPROM_WRITE_ADDR,
-	                        WriteAddr, 
-	                        I2C_MEMADD_SIZE_16BIT, 
-	                        &wdat, 
-	                        1, 
-	                        CONFIG_EPROM_TIMEOUT);
-	if(ret != HAL_OK){
-		ret = HAL_I2C_DeInit(&hi2c1);//释放IO口为GPIO，复位句柄状态标志
-		ret = HAL_I2C_Init(&hi2c1);//这句重新初始化I2C控制器
-		printf("sPlc->sPlcEprom:Eprom write byte fail!\n");
-	}
-	return ret;
-}
-static HAL_StatusTypeDef epromRead(uint16_t ReadAddr, uint8_t *pBuffer, uint16_t NumToRead){//在的指定地址开始读出指定个数的数据
-//ReadAddr :开始读出的地址 对24c02为0~255
-//pBuffer  :数据数组首地址
-//NumToRead:要读出数据的个数
-	HAL_StatusTypeDef ret;
-	uint16_t rAddr, rBlock, rByte, doBlock;
-	uint8_t* rBuffer;
-	if(ReadAddr + NumToRead >= (CONFIG_EPROM_SIZE - 1)){//读地址超过限制
-		ret = HAL_ERROR;
-		return ret;
-	}
-	rBlock = NumToRead / CONFIG_EPROM_PAGE_SIZE;
-	rByte = NumToRead % CONFIG_EPROM_PAGE_SIZE;
-	rAddr = ReadAddr;
-	rBuffer = pBuffer;
-	for(doBlock = 0;doBlock < rBlock;doBlock ++){
-		ret = HAL_I2C_Mem_Read(&hi2c1, CONFIG_EPROM_READ_ADDR, rAddr, I2C_MEMADD_SIZE_16BIT, rBuffer, CONFIG_EPROM_PAGE_SIZE, CONFIG_EPROM_TIMEOUT);
-		if(ret != HAL_OK){
-			ret = HAL_I2C_DeInit(&hi2c1);//释放IO口为GPIO，复位句柄状态标志
-			ret = HAL_I2C_Init(&hi2c1);//这句重新初始化I2C控制器
-			printf("sPlc->sPlcEprom:Eprom read block fail!\n");
-		}
-		rAddr += CONFIG_EPROM_PAGE_SIZE;
-		rBuffer += CONFIG_EPROM_PAGE_SIZE;
-	}
-	if(rByte != 0x0){
-		ret = HAL_I2C_Mem_Read(&hi2c1, CONFIG_EPROM_READ_ADDR, rAddr, I2C_MEMADD_SIZE_16BIT, rBuffer, rByte ,CONFIG_EPROM_TIMEOUT);
-		if(ret != HAL_OK){
-			ret = HAL_I2C_DeInit(&hi2c1);        //释放IO口为GPIO，复位句柄状态标志
-			ret = HAL_I2C_Init(&hi2c1);          //这句重新初始化I2C控制器
-		}
-		printf("sPlc->sPlcEprom:Eprom read rbyte fail\n");
-	}
-	return ret;	
-}  
-static HAL_StatusTypeDef epromWrite(uint16_t WriteAddr, uint8_t *pBuffer, uint16_t NumToWrite){//在的指定地址开始写入指定个数的数据
-//WriteAddr :开始写入的地址 对24c02为0~255
-//pBuffer   :数据数组首地址
-//NumToWrite:要写入数据的个数
-	HAL_StatusTypeDef ret;
-	uint16_t wAddr, wBlock, wByte, doBlock;
-	uint8_t* wBuffer;
-	if(WriteAddr + NumToWrite >= (CONFIG_EPROM_SIZE - 1)){//读地址超过限制
-		ret = HAL_ERROR;
-		return ret;
-	}
-	wBlock = NumToWrite / CONFIG_EPROM_PAGE_SIZE;
-	wByte = NumToWrite % CONFIG_EPROM_PAGE_SIZE;
-	wAddr = WriteAddr;
-	wBuffer = pBuffer;
-	for(doBlock = 0;doBlock < wBlock;doBlock ++){
-		ret = HAL_I2C_Mem_Write(&hi2c1, CONFIG_EPROM_WRITE_ADDR, wAddr, I2C_MEMADD_SIZE_16BIT, wBuffer, CONFIG_EPROM_PAGE_SIZE, CONFIG_EPROM_TIMEOUT);
-		if(ret != HAL_OK){
-			ret = HAL_I2C_DeInit(&hi2c1);        //释放IO口为GPIO，复位句柄状态标志
-			ret = HAL_I2C_Init(&hi2c1);          //这句重新初始化I2C控制器
-			printf("sPlc->sPlcEprom:Eprom write block fail!\n");	
-		}
-		wAddr += CONFIG_EPROM_PAGE_SIZE;
-		wBuffer += CONFIG_EPROM_PAGE_SIZE;
-#if CONFIG_EPROM_WRITE_DELAY > 0
- 		HAL_Delay(CONFIG_EPROM_WRITE_DELAY);
-#endif
-	}
-	if(wByte != 0x0){
-		ret = HAL_I2C_Mem_Write(&hi2c1, CONFIG_EPROM_WRITE_ADDR, wAddr, I2C_MEMADD_SIZE_16BIT, wBuffer, wByte, CONFIG_EPROM_TIMEOUT);
-		if(ret != HAL_OK){
-			ret = HAL_I2C_DeInit(&hi2c1);        //释放IO口为GPIO，复位句柄状态标志
-			ret = HAL_I2C_Init(&hi2c1);          //这句重新初始化I2C控制器
-			printf("sPlc->sPlcEprom:Eprom write remain byte fail!\n");
-		}
-	}
-#if CONFIG_EPROM_WRITE_DELAY > 0
-	HAL_Delay(CONFIG_EPROM_WRITE_DELAY);
-#endif
-	return ret;
-}
-static void clearEprom(clarmEpromCmd_t cmd){//清除EPROM内容
-	uint8_t var = 0;
-	uint32_t i;	
-	switch(cmd){
-		case CLEAR_EPROM_ALL:{
-			for(i = 0;i < CONFIG_EPROM_SIZE;i ++){
-				epromWriteByte(i, var);
-			}
-			printf("Bootloader->:Erase all eprom sucess!\n");
-			break;
-		}
-		case CLEAR_EPROM_FIRMWARE_INFO:{
-			for(i = CONFIG_EPROM_FWINFO_START;i <= CONFIG_EPROM_FWINFO_END;i ++){
-				epromWriteByte(i, var);
-			}
-			printf("Bootloader->:Erase eprom firmware info sucess!\n");
-			break;
-		}
-		case CLEAR_EPROM_DEVICE_CONFIG:{
-			for(i = CONFIG_EPROM_CONFIG_START;i <= CONFIG_EPROM_CONFIG_END;i ++){
-				epromWriteByte(i, var);
-			}
-			printf("Bootloader->:Erase eprom device info sucess!\n");
-			break;
-		}
-		case CLEAR_EPROM_LOG_INFO:{
-			for(i = CONFIG_EPROM_LOGINFO_START;i <= CONFIG_EPROM_LOGINFO_END;i ++){
-				epromWriteByte(i, var);
-			}
-			printf("Bootloader->:Erase eprom log info sucess!\n");
-			break;
-		}
-		default:break;
-	}
-}
-
-
 
 
