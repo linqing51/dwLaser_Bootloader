@@ -19,9 +19,11 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "crc.h"
+#include "dac.h"
 #include "fatfs.h"
 #include "i2c.h"
 #include "rng.h"
+#include "tim.h"
 #include "usart.h"
 #include "usb_host.h"
 #include "gpio.h"
@@ -80,7 +82,7 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-resetInit();
+	resetInit();
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -92,13 +94,20 @@ resetInit();
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DAC_Init();
   MX_I2C1_Init();
+  MX_TIM2_Init();
+  MX_TIM3_Init();
   MX_UART4_Init();
   MX_USART1_UART_Init();
-  MX_FATFS_Init();
-  MX_USB_HOST_Init();
+  MX_USART2_UART_Init();
   MX_CRC_Init();
   MX_RNG_Init();
+  MX_TIM10_Init();
+  MX_TIM14_Init();
+  MX_TIM11_Init();
+  MX_FATFS_Init();
+  MX_USB_HOST_Init();
   /* USER CODE BEGIN 2 */
 	bootLoadInit();
 	HAL_FLASH_Unlock();
