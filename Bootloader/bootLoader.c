@@ -41,8 +41,8 @@
 #define BT_DONE_UPDATE_EPROM						'I'//更新EPROM完成
 #define BT_DONE_DUMP_EPROM							'J'//下载EPROM完成
 /*****************************************************************************/
-#define GDDC_LCD_NORMAL_BAUDRATE					(115200UL)//LCD串口屏正常波特率
-#define GDDC_LCD_UPDATE_BAUDRATE					(115200UL)//LCD串口屏更新波特率
+//#define GDDC_LCD_NORMAL_BAUDRATE					(115200UL)//LCD串口屏正常波特率
+//#define GDDC_LCD_UPDATE_BAUDRATE					(115200UL)//LCD串口屏更新波特率
 /*****************************************************************************/
 #define GDDC_UART_HANDLE							huart4
 #define GDDC_UART_IRQ								UART4_IRQn
@@ -54,11 +54,8 @@
 #define GDDC_RX_TIMEOUT								0xFFFF
 #define GDDC_TX_TIMEOUT								0xFFFF
 #define GDDC_RETRY_TIMES							10//发送重试次数
-#define GDDC_UPDATE_BAUDRATE						115200//不改变波特率
 /*****************************************************************************/
-#define MORSECODE_SPACE_TIME						3000
-#define MORSECODE_LONG_TIME							900
-#define MORSECODE_SHORT_TIME						300
+const char BootloadVer[8] __attribute__((at(0X800F000)))= {0x00, 0x00, 0x00, 0x00, 0x80, 0x5A, 0x00, 0x01};
 /*****************************************************************************/
 uint32_t TmpReadSize = 0x00;
 uint32_t RamAddress = 0x00;
@@ -71,7 +68,6 @@ uint8_t gddcTxBuf[GDDC_TX_BUF_SIZE];//屏幕串口发送缓冲区
 extern I2C_HandleTypeDef hi2c1;
 extern UART_HandleTypeDef huart4;
 extern UART_HandleTypeDef huart1;
-extern UART_HandleTypeDef huart2;
 extern USBH_HandleTypeDef hUsbHostFS;
 /*****************************************************************************/
 FRESULT retUsbH;
@@ -102,7 +98,6 @@ static void dp_display_text(uint8_t *text);
 static void dp_display_text_num(uint8_t *text,uint16_t datanum);	
 static void dp_display_value(uint32_t value,int descriptive);
 static void dp_display_array(uint8_t *value,int bytes, int descriptive);	
-static void beepDiag(uint8_t diag);
 static void clearFlash(void);
 static uint32_t getOriginAppCrc(void);
 static uint32_t getNewMcuAppCrc(void);
@@ -204,9 +199,12 @@ void bootLoadInit(void){//引导程序初始化
 	else{
 		printf("Bootloader:OUTPUT->LAS_PWM3     = Low!\n");
 	}
-	printf("Bootloader:OUTPUT->AIM_PWM	     	= ON!\n");
-	printf("Bootloader:OUTPUT->LAS_FAN  	   	= ON!\n");
-	printf("Bootloader:OUTPUT->LAS_TEC     		= OFF!\n");
+	SET_AIM_OFF;
+	SET_FAN_ON;
+	SET_TEC_OFF;
+	printf("Bootloader:OUTPUT->AIM_PWM          = OFF!\n");
+	printf("Bootloader:OUTPUT->LAS_FAN          = ON!\n");
+	printf("Bootloader:OUTPUT->LAS_TEC          = OFF!\n");
 	HAL_Delay(10);
 	
 }
@@ -242,7 +240,7 @@ void bootLoadProcess(void){//bootload 执行程序
 			}			
 			printf("Bootloader:UniqueID->0x%08X%08X%08X\n", UniqueId[0], UniqueId[1], UniqueId[2]);
 			printf("Bootloader:Mcu flash size->%d Kbytes\n", cpuGetFlashSize());
-			printf("Bootloader:Ver->0x%08X Build->%s:%s\n", BOOTLOADER_VER, __DATE__, __TIME__);
+			printf("Bootloader:Build->%s:%s\n", __DATE__, __TIME__);
 			printf("Bootloader:Bootload Start:0x%08X,End:0x%08X,Size:0x%08X\n", BOOTLOADER_FLASH_START_ADDRESS, BOOTLOADER_FLASH_END_ADDRESS ,BOOTLOADER_FLASH_SIZE);
 			printf("Bootloader:Applicent Start:0x%08X,End:0x%08X,Size:0x%08X\n", APPLICATION_FLASH_START_ADDRESS, APPLICATION_FLASH_END_ADDRESS, APPLICATION_FLASH_SIZE);
 			if(	(GET_INTERLOCK_NC == GPIO_PIN_SET) &&//安全连锁未插入
@@ -409,6 +407,7 @@ void bootLoadProcess(void){//bootload 执行程序
 			HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
 			HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
 			HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
+			HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
 			bootLoadState = BT_STATE_RESET;//更新APP
 			break;
 		}
@@ -442,6 +441,7 @@ void bootLoadProcess(void){//bootload 执行程序
 				epromWriteDword(CONFIG_EPROM_LCD_FW_CRC, &crcEpromLcd);
 				printf("Bootloader:Update lcd app new crc32 sucess,wait 60s lcd upgrade done\n");
 				//等待60秒 LCD FLASH写入完成后重启
+				HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
 				HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
 				HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
 				HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
@@ -500,262 +500,7 @@ void bootLoadProcess(void){//bootload 执行程序
 		default:break;
 	}
 }
-static void beepDiag(uint8_t diag){//蜂鸣器诊断声音 摩尔斯电码
-	//关闭USB VBUS
-	switch(diag){
-		case '0':{
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;
-			break;
-		}
-		case '1':{
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;
-			break;
-		};
-		case '2':{
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;
-			break;
-		};
-		case '3':{
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;
-			break;
-		}
-		case '4':{
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;
-			break;
-		}
-		case '5':{
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;
-			break;
-		}
-		case '6':{
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;
-			break;
-		}
-		case '7':{	
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;
-			break;
-		}
-		case '8':{
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;
-			break;
-		}
-		case '9':{
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;
-			break;
-		}
-		case 'A':{
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;
-			break;
-		}
-		case 'B':{
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;
-			break;			
-		}
-		case 'C':{
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;
-			break;
-		}
-		case 'D':{
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;
-			break;
-		}
-		case 'E':{
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;
-			break;
-		}
-		case 'F':{
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;
-			break;
-		}
-		case 'G':{
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;
-			break;
-		}
-		case 'H':{
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;
-			break;			
-		}
-		case 'I':{
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;
-			break;
-		}
-		case 'J':{
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;
-			break;
-		}
-		case 'K':{
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;
-			break;
-		}
-		case 'L':{//．━ ．．
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//.
-			SET_RLED_ON;HAL_Delay(MORSECODE_SHORT_TIME);SET_RLED_OFF;
-			break;
-		}
-		case 'M':{//━ ━
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;HAL_Delay(MORSECODE_SPACE_TIME);
-			//-
-			SET_RLED_ON;HAL_Delay(MORSECODE_LONG_TIME);SET_RLED_OFF;
-			break;
-		}
-		default:break;
-	}
-	HAL_Delay(3000);
-}
+
 static void bootLoadFailHandler(uint8_t ftype){//引导错误程序
 	MX_DriverVbusFS(FALSE);//关闭USB VBUS
 	printf("Bootloader:SYS_ERR_LED->On!\n");
@@ -766,97 +511,97 @@ static void bootLoadFailHandler(uint8_t ftype){//引导错误程序
 		case BT_FAIL_READ_CFG:{//从U盘读取CFG失败
 			printf("Bootloader:FailHandler,Read %s fail!.\n", CFG_FIRMWARE_FILENAME);
 			while(1){
-				beepDiag(BT_FAIL_READ_CFG);
+				morseCodeDiag(BT_FAIL_READ_CFG);
 			};
 		}
 		case BT_FAIL_READ_LMCU_APP:{//从U盘读取MCU APP失败
 			printf("Bootloader:FailHandler,Read %s fail!.\n", LMCU_FIRMWARE_FILENAME);
 			while(1){
-				beepDiag(BT_FAIL_READ_LMCU_APP);
+				morseCodeDiag(BT_FAIL_READ_LMCU_APP);
 			};
 		}
 		case BT_FAIL_READ_LLCD_APP:{//从U盘读取LCD APP失败
 			printf("Bootloader:FailHandler,Read %s fail!.\n", LLCD_FIRMWARE_FILENAME);
 			while(1){
-				beepDiag(BT_FAIL_READ_LLCD_APP);
+				morseCodeDiag(BT_FAIL_READ_LLCD_APP);
 			};
 		}
 		case BT_FAIL_ERASE_MCU_APP:{//擦除MCU APP FLASH区域失败
 			printf("Bootloader:FailHandler,Erase mcu application fail\n");
 			while(1){
-				beepDiag(BT_FAIL_ERASE_MCU_APP);
+				morseCodeDiag(BT_FAIL_ERASE_MCU_APP);
 			};
 		}
 		case BT_FAIL_READ_LEROM_BIN:{
 			printf("Bootloader:FailHandler,Read %s fail!\n", LOAD_EPROM_FILENAME);
 			while(1){
-				beepDiag(BT_FAIL_READ_LEROM_BIN);
+				morseCodeDiag(BT_FAIL_READ_LEROM_BIN);
 			}
 		}
 		case BT_FAIL_WRITE_SEROM_BIN:{
 			printf("Bootloader:FailHandler,Write %s fail!\n", SAVE_EPROM_FILENAME);
 			while(1){
-				beepDiag(BT_FAIL_WRITE_SEROM_BIN);
+				morseCodeDiag(BT_FAIL_WRITE_SEROM_BIN);
 			}
 		}
 		case BT_FAIL_LMCU_APP_CHECK:{//lmcu.bin 检查错误
 			printf("Bootloader:FailHandler,%s size is invalid!\n", LMCU_FIRMWARE_FILENAME);
 			while(1){
-				beepDiag(BT_FAIL_LMCU_APP_CHECK);
+				morseCodeDiag(BT_FAIL_LMCU_APP_CHECK);
 			};
 		}
 		case BT_FAIL_LLCD_APP_CHECK:{//llcd.bin 检查错误
 			printf("Bootloader:FailHandler,%s size is invalid!\n", LLCD_FIRMWARE_FILENAME);
 			while(1){
-				beepDiag(BT_FAIL_LLCD_APP_CHECK);
+				morseCodeDiag(BT_FAIL_LLCD_APP_CHECK);
 			};
 		}
 		case BT_FAIL_CHECKSUM_MCU_APP_FLASH:{//校验 lmcu.bin 错误
 			printf("Bootloader:FailHandler,Verify %s fail!.\n", LMCU_FIRMWARE_FILENAME);
 			while(1){
-				beepDiag(BT_FAIL_CHECKSUM_MCU_APP_FLASH);
+				morseCodeDiag(BT_FAIL_CHECKSUM_MCU_APP_FLASH);
 			};
 		}
 		case BT_FAIL_LCD_NOT_RESPOND:{//LCD 串口无响应或错误
 			printf("Bootloader:FailHandler,LCD is not responsed!.\n");
 			while(1){
-				beepDiag(BT_FAIL_LCD_NOT_RESPOND);
+				morseCodeDiag(BT_FAIL_LCD_NOT_RESPOND);
 			};
 		}
 		case BT_FAIL_LCD_DOWNLOAD:{//LCD 命令无响应
 			printf("Bootloader:FailHandler,LCD download fail!.\n");
 			while(1){
-				beepDiag(BT_FAIL_LCD_DOWNLOAD);
+				morseCodeDiag(BT_FAIL_LCD_DOWNLOAD);
 			};
 		}
 		case BT_FAIL_VECTOR_TABLE_INVALID:{//APP无效向量表
 			printf("Bootloader:FailHandler,App vector table invalid.\n");
 			while(1){
-				beepDiag(BT_FAIL_VECTOR_TABLE_INVALID);
+				morseCodeDiag(BT_FAIL_VECTOR_TABLE_INVALID);
 			};
 		}
 		case BT_FAIL_CHECK_BLANK:{//FLASH 查空错误
 			printf("Bootloader:FailHandler,Flash is not blank!.\n");
 			while(1){
-				beepDiag(BT_FAIL_CHECK_BLANK);
+				morseCodeDiag(BT_FAIL_CHECK_BLANK);
 			};
 		}
 		case BT_DONE_CLEAR_ALL:{
 			printf("Bootloader:DoneHandler,Flash and Eprom easer done!.\n");
 			while(1){
-				beepDiag(BT_DONE_CLEAR_ALL);
+				morseCodeDiag(BT_DONE_CLEAR_ALL);
 			}
 		}
 		case BT_DONE_UPDATE_EPROM:{
 			printf("Bootloader:DoneHandler,Update eprom form udisk done!.\n");
 			while(1){
-				beepDiag(BT_DONE_UPDATE_EPROM);
+				morseCodeDiag(BT_DONE_UPDATE_EPROM);
 			}
 		}
 		case BT_DONE_DUMP_EPROM:{
 			printf("Bootloader:DoneHandler,Dump eprom to udisk done!\n");
 			while(1){
-				beepDiag(BT_DONE_DUMP_EPROM);
+				morseCodeDiag(BT_DONE_DUMP_EPROM);
 			}
 		}
 		default:{
@@ -1006,7 +751,7 @@ static uint32_t updateLcdApp(void){//更新LCD APP
 	uint32_t blockSize = 2048;//需要读取的数据包大小
 	uint32_t transferByte;//读取字节数
 	uint32_t actualByte;//实际读取的字节数
-	uint32_t upSpeedBaudrate = GDDC_UPDATE_BAUDRATE;//提升波特率
+	//uint32_t upSpeedBaudrate = GDDC_UPDATE_BAUDRATE;//提升波特率
 	uint32_t fileIndex;
 	uint16_t checkSum;//校验码
 	uint8_t lcdRetry;//错误重复次数
@@ -1051,20 +796,25 @@ static uint32_t updateLcdApp(void){//更新LCD APP
 	cmd[3] = (fileSize >> 16) & 0xff;
 	cmd[4] = (fileSize >>  8) & 0xff;
 	cmd[5] = (fileSize) & 0xff;    
-	cmd[6] = (baudrateTable[baudrateSelect] >> 24) & 0xff;
-	cmd[7] = (baudrateTable[baudrateSelect] >> 16) & 0xff;
-	cmd[8] = (baudrateTable[baudrateSelect] >>  8) & 0xff;
-	cmd[9] = (baudrateTable[baudrateSelect]) & 0xff;    
+	//cmd[6] = (baudrateTable[baudrateSelect] >> 24) & 0xff;
+	//cmd[7] = (baudrateTable[baudrateSelect] >> 16) & 0xff;
+	//cmd[8] = (baudrateTable[baudrateSelect] >>  8) & 0xff;
+	//cmd[9] = (baudrateTable[baudrateSelect]) & 0xff;    
+	cmd[6] = 0;
+	cmd[7] = 0;
+	cmd[8] = 0;
+	cmd[9] = 0;
 	//校验和
 	cmd[10] = cmd[1] + cmd[2] + cmd[3] + cmd[4] + cmd[5] + cmd[6] + cmd[7] + cmd[8] + cmd[9];
     //发送下载命令
 	memset(gddcRxBuf, 0x0, sizeof(gddcRxBuf));
-	printf("Bootloader->updateLcdApp:Send filesize and up speed baudrate.\n");
+	printf("Bootloader->updateLcdApp:Send filesize and not change baudrate.\n");
 	dp_display_text_num(cmd, 15);
-	uRet = HAL_UART_Receive(puart, gddcRxBuf, 1, 10000);//查询串口接收数据 超时10000mS
+	uRet = HAL_UART_Receive(puart, gddcRxBuf, 1, 1000);//查询串口接收数据 超时10000mS
 	if(uRet != HAL_OK || gddcRxBuf[0] != 0xAA){
 		bootLoadFailHandler(BT_FAIL_LCD_NOT_RESPOND);
 	}
+	/* 去掉波特率提升
 	printf("Bootloader->updateLcdApp:Set up baudrate done.\n");
 	if(baudrateTable[baudrateSelect] != upSpeedBaudrate){//提升波特率与当前波特率不相同
 		//重设串口到提升波特率
@@ -1084,6 +834,7 @@ static uint32_t updateLcdApp(void){//更新LCD APP
 		}
 		__HAL_UART_ENABLE(puart);//打开串口
 	}
+	*/
 	HAL_Delay(200);//等待200mS
     //一个数据包固定为2052字节
     //格式:SN ~SN DATA CHECKSUM
@@ -1125,7 +876,7 @@ static uint32_t updateLcdApp(void){//更新LCD APP
 			memset(gddcRxBuf, 0x0, sizeof(gddcRxBuf));
 			printf("Bootloader->updateLcdApp:Send file block at 0x%08XH,", fileIndex);
 			dp_display_text_num(gddcTxBuf, (blockSize + 4));//send data
-			uRet = HAL_UART_Receive(puart, gddcRxBuf, 2, 1000);//查询串口接收数据 超时1000            
+			uRet = HAL_UART_Receive(puart, gddcRxBuf, 2, 2000);//查询串口接收数据 超时1000            
 			if(uRet == HAL_OK){//接收正常
 				if(gddcRxBuf[1] == (uint8_t)(~(signName + 1)) || gddcRxBuf[0] == (signName+1)){
 					signName = signName + 1;
