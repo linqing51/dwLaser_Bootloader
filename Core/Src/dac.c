@@ -48,11 +48,11 @@ void MX_DAC_Init(void)
     Error_Handler();
   }
 
-  /** DAC channel OUT1 config
+  /** DAC channel OUT2 config
   */
   sConfig.DAC_Trigger = DAC_TRIGGER_NONE;
   sConfig.DAC_OutputBuffer = DAC_OUTPUTBUFFER_ENABLE;
-  if (HAL_DAC_ConfigChannel(&hdac, &sConfig, DAC_CHANNEL_1) != HAL_OK)
+  if (HAL_DAC_ConfigChannel(&hdac, &sConfig, DAC_CHANNEL_2) != HAL_OK)
   {
     Error_Handler();
   }
@@ -76,16 +76,13 @@ void HAL_DAC_MspInit(DAC_HandleTypeDef* dacHandle)
 
     __HAL_RCC_GPIOA_CLK_ENABLE();
     /**DAC GPIO Configuration
-    PA4     ------> DAC_OUT1
+    PA5     ------> DAC_OUT2
     */
     GPIO_InitStruct.Pin = SPK_DAC_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(SPK_DAC_GPIO_Port, &GPIO_InitStruct);
 
-    /* DAC interrupt Init */
-    HAL_NVIC_SetPriority(TIM6_DAC_IRQn, 15, 0);
-    HAL_NVIC_EnableIRQ(TIM6_DAC_IRQn);
   /* USER CODE BEGIN DAC_MspInit 1 */
 
   /* USER CODE END DAC_MspInit 1 */
@@ -104,12 +101,10 @@ void HAL_DAC_MspDeInit(DAC_HandleTypeDef* dacHandle)
     __HAL_RCC_DAC_CLK_DISABLE();
 
     /**DAC GPIO Configuration
-    PA4     ------> DAC_OUT1
+    PA5     ------> DAC_OUT2
     */
     HAL_GPIO_DeInit(SPK_DAC_GPIO_Port, SPK_DAC_Pin);
 
-    /* DAC interrupt Deinit */
-    HAL_NVIC_DisableIRQ(TIM6_DAC_IRQn);
   /* USER CODE BEGIN DAC_MspDeInit 1 */
 
   /* USER CODE END DAC_MspDeInit 1 */

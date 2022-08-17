@@ -210,13 +210,6 @@ static uint32_t FLASH_If_GetSectorNumber(uint32_t Address)
   {
     sector = FLASH_SECTOR_10;
   }
-#ifdef STM32F405xx
-	else
-  {
-    sector = FLASH_SECTOR_11;
-  }
-#endif
-#ifdef STM32F413xx
   else if (Address < ADDR_FLASH_SECTOR_12 && Address >= ADDR_FLASH_SECTOR_11)
   {
     sector = FLASH_SECTOR_11;
@@ -237,7 +230,6 @@ static uint32_t FLASH_If_GetSectorNumber(uint32_t Address)
   {
     sector = FLASH_SECTOR_15;
   }
-#endif
   return sector;
 }
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
