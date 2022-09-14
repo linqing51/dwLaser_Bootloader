@@ -103,7 +103,7 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* adcHandle)
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-    GPIO_InitStruct.Pin = LPA_ISMON0_Pin|NTC_TEMP_Pin|LASER0_PD_Pin|LASER1_PD_Pin;
+    GPIO_InitStruct.Pin = LPA_ISMON0_Pin|NTC_TEMP_Pin|LASER1_PD_Pin|LASER2_PD_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -137,7 +137,7 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
     */
     HAL_GPIO_DeInit(GPIOC, LPC_ISMON0_Pin|LPB_ISMON1_Pin|LPB_ISMON0_Pin|LPA_ISMON1_Pin);
 
-    HAL_GPIO_DeInit(GPIOA, LPA_ISMON0_Pin|NTC_TEMP_Pin|LASER0_PD_Pin|LASER1_PD_Pin);
+    HAL_GPIO_DeInit(GPIOA, LPA_ISMON0_Pin|NTC_TEMP_Pin|LASER1_PD_Pin|LASER2_PD_Pin);
 
   /* USER CODE BEGIN ADC1_MspDeInit 1 */
 

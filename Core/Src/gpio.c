@@ -38,6 +38,15 @@
         * Output
         * EVENT_OUT
         * EXTI
+     PC0   ------> ADCx_IN10
+     PC1   ------> ADCx_IN11
+     PC2   ------> ADCx_IN12
+     PC3   ------> ADCx_IN13
+     PA0   ------> ADCx_IN0
+     PA1   ------> ADCx_IN1
+     PA2   ------> ADCx_IN2
+     PA3   ------> ADCx_IN3
+     PA5   ------> COMP_DAC2_group
 */
 void MX_GPIO_Init(void)
 {
@@ -53,29 +62,43 @@ void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, DA_SYNC_Pin|DA_SCLK_Pin|DA_DIN_Pin|TICK_LED_Pin
-                          |LASER1_AIM_Pin|INTERLOCK_NC_IN_Pin, GPIO_PIN_RESET);
+                          |LASER2_AIM_Pin|INTERLOCK_IN_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOA, SPK_EN_Pin|LASER_PWM_Pin|OTG_FS_PSON_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, ERR_LED_Pin|U5POW_OUT_Pin|LASER0_AIM_Pin|TEC_PWM_OUT_Pin
-                          |ALARM_LED_OUT_Pin|LASER0_LED_OUT_Pin|LASER1_LED_OUT_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, ERR_LED_Pin|LASER1_AIM_Pin|TEC_OUT_Pin|ALARM_LED_OUT_Pin
+                          |LASER1_LED_OUT_Pin|LASER2_LED_OUT_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(FAN5V_OUT_GPIO_Port, FAN5V_OUT_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(LINK_LED_GPIO_Port, LINK_LED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : PCPin PCPin PCPin PCPin
                            PCPin PCPin */
   GPIO_InitStruct.Pin = DA_SYNC_Pin|DA_SCLK_Pin|DA_DIN_Pin|TICK_LED_Pin
-                          |LASER1_AIM_Pin|INTERLOCK_NC_IN_Pin;
+                          |LASER2_AIM_Pin|INTERLOCK_IN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : PCPin PCPin PCPin PCPin */
+  GPIO_InitStruct.Pin = LPC_ISMON0_Pin|LPB_ISMON1_Pin|LPB_ISMON0_Pin|LPA_ISMON1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : PAPin PAPin PAPin PAPin
+                           PAPin */
+  GPIO_InitStruct.Pin = LPA_ISMON0_Pin|NTC_TEMP_Pin|LASER1_PD_Pin|LASER2_PD_Pin
+                          |SPK_DAC_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
   /*Configure GPIO pins : PAPin PAPin */
-  GPIO_InitStruct.Pin = PM_ALARM_Pin|LASER0_START_IN_Pin;
+  GPIO_InitStruct.Pin = PM_ALARM_Pin|LASER_TRIG_IN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -88,15 +111,15 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PCPin PCPin PCPin */
-  GPIO_InitStruct.Pin = POWER_KEY_Pin|LASER1_START_IN_Pin|ESTOP_NC_IN_Pin;
+  GPIO_InitStruct.Pin = POWER_KEY_Pin|LASER_EXT_ENA_Pin|ESTOP_NC_IN_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PBPin PBPin PBPin PBPin
-                           PBPin PBPin PBPin */
-  GPIO_InitStruct.Pin = ERR_LED_Pin|U5POW_OUT_Pin|LASER0_AIM_Pin|TEC_PWM_OUT_Pin
-                          |ALARM_LED_OUT_Pin|LASER0_LED_OUT_Pin|LASER1_LED_OUT_Pin;
+                           PBPin PBPin */
+  GPIO_InitStruct.Pin = ERR_LED_Pin|LASER1_AIM_Pin|TEC_OUT_Pin|ALARM_LED_OUT_Pin
+                          |LASER1_LED_OUT_Pin|LASER2_LED_OUT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -122,11 +145,11 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(OTG_FS_PSON_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PtPin */
-  GPIO_InitStruct.Pin = FAN5V_OUT_Pin;
+  GPIO_InitStruct.Pin = LINK_LED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(FAN5V_OUT_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(LINK_LED_GPIO_Port, &GPIO_InitStruct);
 
 }
 

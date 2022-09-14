@@ -18,9 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "adc.h"
 #include "crc.h"
-#include "dac.h"
 #include "fatfs.h"
 #include "i2c.h"
 #include "rng.h"
@@ -40,6 +38,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+extern void resetInit(void);
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -73,7 +72,7 @@ void MX_USB_HOST_Process(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-resetInit();
+	resetInit();
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -100,8 +99,6 @@ resetInit();
   MX_FATFS_Init();
   MX_USB_HOST_Init();
   MX_USART6_UART_Init();
-  MX_ADC1_Init();
-  MX_DAC_Init();
   MX_CRC_Init();
   MX_RNG_Init();
   /* USER CODE BEGIN 2 */

@@ -12,11 +12,9 @@
 #include "ff_gen_drv.h"
 #include "flash_if.h"
 #include "usart.h"
-#include "deviceConfig.h"
 /*****************************************************************************/
 #include "..\..\dwLaser_Application\MCU_Application\sPlc\sPlcConfig.h"
 #include "..\..\dwLaser_Application\MCU_Application\sPlcPort\sPlcEprom.h"
-#include "..\..\dwLaser_Application\MCU_Application\sPlcPort\sPlcMisc.h"
 /*****************************************************************************/
 extern uint8_t usbReady;//USB DISK¾ÍÐ÷
 /*****************************************************************************/
