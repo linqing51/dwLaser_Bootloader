@@ -57,12 +57,12 @@
 /* Exported types ------------------------------------------------------------*/
 typedef  void (*pFunction)(void);
 
-#define BOOTLOADER_FLASH_START_ADDRESS    		((uint32_t)0x08000000)//引导程序起始地址
-#define BOOTLOADER_FLASH_END_ADDRESS			((uint32_t)0x0800FFFF)//引导程序起始地址
-#define BOOTLOADER_FLASH_SIZE					(BOOTLOADER_FLASH_END_ADDRESS - BOOTLOADER_FLASH_START_ADDRESS + 1)//引导程序区容量
-#define APPLICATION_FLASH_START_ADDRESS        	((uint32_t)0x08010000)//应用程序起始地址
-#define APPLICATION_FLASH_END_ADDRESS  			((uint32_t)0x0817FFFF)//应用程序结束地址
-#define APPLICATION_FLASH_SIZE   				(APPLICATION_FLASH_END_ADDRESS - APPLICATION_FLASH_START_ADDRESS + 1)//应用程序区容量
+#define BOOTLOADER_FLASH_START_ADDRESS    											((uint32_t)0x08000000)//引导程序起始地址
+#define BOOTLOADER_FLASH_END_ADDRESS														((uint32_t)0x0800FFFF)//引导程序起始地址
+#define BOOTLOADER_FLASH_SIZE																		(BOOTLOADER_FLASH_END_ADDRESS - BOOTLOADER_FLASH_START_ADDRESS + 1)//引导程序区容量
+#define APPLICATION_FLASH_START_ADDRESS        									((uint32_t)0x08010000)//应用程序起始地址
+#define APPLICATION_FLASH_END_ADDRESS  													((uint32_t)0x0817FFFF)//应用程序结束地址
+#define APPLICATION_FLASH_SIZE   																(APPLICATION_FLASH_END_ADDRESS - APPLICATION_FLASH_START_ADDRESS + 1)//应用程序区容量
 
 /* Base address of the Flash sectors Bank 1 */
 #define ADDR_FLASH_SECTOR_0     				((uint32_t)0x08000000) /* Base @ of Sector 0, 16 Kbytes */

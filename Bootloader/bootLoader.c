@@ -6,15 +6,14 @@
 //SECTOR3->16K:BOOTLOADER
 /*****************************************************************************/
 #define BT_STATE_IDLE															0//空闲
-#define BT_STATE_LOAD_FWINFO											1//EPROM载入固件信息
-#define BT_STATE_USBHOST_INIT											2//FATFS 初始化
-#define BT_STATE_WAIT_UDISK												3//等待USB DISK就绪
-#define BT_STATE_READ_CFG													4//读取配置文件
-#define BT_STATE_UPDATE_MCU_BOT										5//更新BOOTLOAD
-#define BT_STATE_UPDATE_MCU_APP										6//更新单片机应用固件
-#define BT_STATE_UPDATE_EPROM											7//更新UDISK->EPROM
-#define BT_STATE_DUMP_EPROM												8//储存全部EPROM到UDISK
-#define BT_STATE_CLEAT_ALL												9//清除FLASH和EPROM全部
+#define BT_STATE_USBHOST_INIT											1//FATFS 初始化
+#define BT_STATE_WAIT_UDISK												2//等待USB DISK就绪
+#define BT_STATE_READ_CFG													3//读取配置文件
+#define BT_STATE_UPDATE_MCU_BOT										4//更新BOOTLOAD
+#define BT_STATE_UPDATE_MCU_APP										5//更新单片机应用固件
+#define BT_STATE_UPDATE_EPROM											6//更新UDISK->EPROM
+#define BT_STATE_DUMP_EPROM												7//储存全部EPROM到UDISK
+#define BT_STATE_CLEAT_ALL												8//清除FLASH和EPROM全部
 #define BT_STATE_RESET														90//重启
 #define BT_STATE_RUN_APP													99//跳转到APP应用程序
 /*****************************************************************************/
@@ -75,8 +74,6 @@ static uint32_t updateMcuApp(void);
 static void clearFlash(void);
 static uint32_t getOriginAppCrc(void);
 static uint32_t getNewMcuAppCrc(void);
-static void updateEprom(void);
-static void dumpEprom(void);
 static void beepDiag(uint8_t diag);
 static void readStm32ChipID(void);
 static uint16_t cpuGetFlashSize(void);
@@ -84,13 +81,14 @@ void resetInit(void);
 static void UsbGpioReset(void);
 static void SystemClock_Reset(void);
 static void softDelayMs(uint16_t ms);
+static uint8_t checkBlank(uint32_t adr, uint32_t size);
 /******************************************************************************/
 void bootLoadInit(void){//引导程序初始化
 	SET_SPEAK_ENA(GPIO_PIN_RESET);//关闭蜂鸣器
 	SET_LASER_PWM(GPIO_PIN_RESET);//关闭制冷
 	SET_LASER1_AIM(GPIO_PIN_RESET);//关闭指示激光
 	SET_LASER2_AIM(GPIO_PIN_RESET);
-	SET_LASER_PWM(GPIO_PIN_RESET);//关闭激光
+	SET_TEC_PWM(GPIO_PIN_RESET);//关闭激光
 	SET_LINK_LED(GPIO_PIN_RESET);
 	SET_ALARM_LED(GPIO_PIN_RESET);
 	SET_LASER1_LED(GPIO_PIN_RESET);
@@ -174,10 +172,8 @@ void bootLoadInit(void){//引导程序初始化
 	HAL_Delay(10);
 }
 void bootLoadProcess(void){//bootload 执行程序
-	HAL_StatusTypeDef ret;
 	uint8_t fileBuff[64];
 	uint32_t crcFlash, crcUdisk;
-	uint32_t crcEpromMcu, crcEpromLcd;//EPROM中储存的CRC记录值
 	uint32_t brByte;//实际读取的字节数
 	//uint32_t bwByte;//实际写入的字节数
 	//注册一个FATFS文件系统
@@ -187,48 +183,19 @@ void bootLoadProcess(void){//bootload 执行程序
 			SET_LASER1_LED(GPIO_PIN_RESET);
 			SET_LASER2_LED(GPIO_PIN_RESET);
 			printf("Bootloader:Start...............\n");
-			listEpromTable();
-			readStm32ChipID();
-			ret = epromReadDword(CONFIG_EPROM_MCU_FW_CRC, &crcEpromMcu);//从EPROM载入设备配置
-			if(ret == HAL_OK){
-				printf("Bootloader:Read eprom MCU FW CRC32:0x%08X\n", crcEpromMcu);
-			}
-			else{
-				printf("Bootloader:Read eprom MCU FW CRC32 fail!\n");
-			}
-			ret = epromReadDword(CONFIG_EPROM_LCD_FW_CRC, &crcEpromLcd);//从EPROM载入设备配置
-			if(ret == HAL_OK){
-				printf("Bootloader:Read eprom LCD FW CRC32:0x%08X\n", crcEpromLcd);
-			}
-			else{
-				printf("Bootloader:Read eprom LCD FW CRC32 fail!\n");
-			}			
+			readStm32ChipID();		
 			printf("Bootloader:UniqueID->0x%08X%08X%08X\n", UniqueId[0], UniqueId[1], UniqueId[2]);
 			printf("Bootloader:Mcu flash size->%d Kbytes\n", cpuGetFlashSize());
 			printf("Bootloader:Build->%s:%s\n", __DATE__, __TIME__);
 			printf("Bootloader:Bootload Start:0x%08X,End:0x%08X,Size:0x%08X\n", BOOTLOADER_FLASH_START_ADDRESS, BOOTLOADER_FLASH_END_ADDRESS ,BOOTLOADER_FLASH_SIZE);
 			printf("Bootloader:Applicent Start:0x%08X,End:0x%08X,Size:0x%08X\n", APPLICATION_FLASH_START_ADDRESS, APPLICATION_FLASH_END_ADDRESS, APPLICATION_FLASH_SIZE);
-			//安全联锁断开、短接外控使能、短接外控触发 启动更新
-			//if((GET_INTERLOCK() == GPIO_PIN_SET) && (GET_INTERLOCK() == GPIO_PIN_RESET)){//拔下安全联锁、按下急停 进入APP更新流程
-			//	bootLoadState = BT_STATE_LOAD_FWINFO;//进入USB更新APP流程
-			//}
-			//else{
-			//	bootLoadState = BT_STATE_RUN_APP;//进入运行APP流程
-			//}
-			
-			//每次执行更新
-			bootLoadState = BT_STATE_LOAD_FWINFO;//进入USB更新APP流程
-			
-			break;
-		}
-		case BT_STATE_LOAD_FWINFO:{
-			if(ret == HAL_OK){
-				bootLoadState = BT_STATE_USBHOST_INIT;
-				printf("Bootloader:Load eprom done!\n");
+			//安全联锁断开进入升级流程
+			if(GET_INTERLOCK() == GPIO_PIN_SET){//拔下安全联锁、按下急停 进入APP更新流程
+				bootLoadState = BT_STATE_USBHOST_INIT;//进入USB更新APP流程
 			}
 			else{
 				bootLoadState = BT_STATE_RUN_APP;//进入运行APP流程
-			}
+			}			
 			break;
 		}
 		case BT_STATE_USBHOST_INIT:{//在USB HOST上挂载FATFS
@@ -321,9 +288,9 @@ void bootLoadProcess(void){//bootload 执行程序
 		case BT_STATE_UPDATE_MCU_APP:{//更新ld_mcu.bin
 			crcFlash = getOriginAppCrc();//计算FLASH中APP固件CRC32
 			crcUdisk = getNewMcuAppCrc();//计算U盘中MCU APP固件CRC32
-			if((crcUdisk == crcEpromMcu) && (crcFlash == crcEpromMcu)){//校验码相同跳过更新
+			if(crcUdisk == crcFlash){//校验码相同跳过更新
 				printf("Bootloader:Check mcu app crc same,skip!\n");
-				bootLoadState = BT_STATE_RESET;
+				bootLoadState = BT_STATE_RUN_APP;
 				break;
 			}
 			crcUdisk = updateMcuApp();//写入MCU FLASH
@@ -333,25 +300,8 @@ void bootLoadProcess(void){//bootload 执行程序
 			}
 			else{
 				printf("Bootloader:Checksum mcu app sucess.\n");
-				epromWriteDword(CONFIG_EPROM_MCU_FW_CRC, &crcEpromMcu);
-				clearEprom(CLEAR_EPROM_NVRAM);//清除NVRAM掉电储存区
-				printf("Bootloader:Update new crc32 sucess.\n");
+				bootLoadState = BT_STATE_RESET;//更新APP
 			}
-			bootLoadState = BT_STATE_RESET;//更新APP
-			break;
-		}
-		case BT_STATE_UPDATE_EPROM:{//更新EPROM
-			updateEprom();
-			break;
-		}
-		case BT_STATE_DUMP_EPROM:{
-			dumpEprom();
-			break;
-		}
-		case BT_STATE_CLEAT_ALL:{//清除FLASH和EPROM全部
-			clearFlash();
-			clearEprom(CLEAR_EPROM_ALL);
-			bootLoadFailHandler(BT_DONE_CLEAR_ALL);
 			break;
 		}
 		case BT_STATE_RESET:{//复位
@@ -553,7 +503,7 @@ static uint32_t updateMcuApp(void){//更新MCU APP
 		if(TmpReadSize < BUFFER_SIZE){
 			readflag = FALSE;
 		}
-		FLIP_ALARM_LED();
+		FLIP_LINK_LED();
 		/* Program flash memory */
 		for(programcounter = 0; programcounter < TmpReadSize; programcounter += 4){
 			/* Write word into flash memory */
@@ -563,7 +513,7 @@ static uint32_t updateMcuApp(void){//更新MCU APP
 		}
 		/* Update last programmed address value */
 		LastPGAddress += TmpReadSize;
-		FLIP_ALARM_LED();;
+		FLIP_LINK_LED();
 	}
 	for(i = LastPGAddress;i < APPLICATION_FLASH_END_ADDRESS;i ++){//补完剩余CRC
 		crc32 = crc32CalculateAdd(0xFF);
@@ -574,42 +524,6 @@ static uint32_t updateMcuApp(void){//更新MCU APP
 	return crc32;
 }
 
-static void updateEprom(void){//UDISK->EPROM
-	HAL_StatusTypeDef ret;
-	uint32_t brByte;
-	retUsbH = f_open(&LepromFile, LOAD_EPROM_FILENAME, FA_OPEN_EXISTING | FA_READ);//读取完成信息文件
-	if(retUsbH != FR_OK){//读取失败跳过固件更新直接运行程序
-		printf("BootLoader:Open %s fail,ECODE=0x%02XH\n", LOAD_EPROM_FILENAME, retUsbH);
-				bootLoadFailHandler(BT_FAIL_READ_LEROM_BIN);
-	}
-	else{//读取成功检查文件内容
-		printf("BootLoader:Open %s sucess,ECODE=0x%02XH\n", LOAD_EPROM_FILENAME, retUsbH);
-		f_lseek(&LepromFile, 0);//读取指针移动到开头
-		retUsbH = f_read(&LepromFile, RAM_Buf, CONFIG_EPROM_SIZE, &brByte);
-		if((retUsbH != FR_OK) || (brByte !=  CONFIG_EPROM_SIZE)){
-			bootLoadFailHandler(BT_FAIL_READ_LEROM_BIN);
-		}
-		f_close(&LepromFile);
-		ret = epromWrite(0, RAM_Buf, CONFIG_EPROM_SIZE);//写入EPROM
-		if(ret != HAL_OK){
-			bootLoadFailHandler(BT_FAIL_WRITE_EPROM);
-		}
-		bootLoadFailHandler(BT_DONE_UPDATE_EPROM);
-	}
-}
-static void dumpEprom(void){//下载EPROM信息到U盘
-	uint32_t wrByte;
-	epromRead(0x0, RAM_Buf, CONFIG_EPROM_SIZE);
-	retUsbH = f_open(&SepromFile, LOAD_EPROM_FILENAME, FA_CREATE_ALWAYS | FA_WRITE);
-	if(retUsbH != FR_OK){//打开失败
-		bootLoadFailHandler(BT_FAIL_WRITE_SEROM_BIN);
-	}
-	retUsbH = f_write(&SepromFile, RAM_Buf, CONFIG_EPROM_SIZE, &wrByte);
-	if(retUsbH != FR_OK){//写入失败
-		bootLoadFailHandler(BT_FAIL_WRITE_SEROM_BIN);
-	}
-	bootLoadFailHandler(BT_DONE_DUMP_EPROM);
-}
 static uint32_t getOriginAppCrc(void){//计算MCU APP CRC32
 	uint8_t val;
 	uint32_t i;
@@ -963,3 +877,18 @@ static void softDelayMs(uint16_t ms){//软件延时
 		__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();
 	}
 }
+
+static uint8_t checkBlank(uint32_t adr, uint32_t size){//MCU Flash 查空
+	uint8_t val;
+	uint32_t i;
+	for(i = 0;i < size;i ++){
+		val = *(__IO uint8_t*)(adr + i);
+		if(val != 0xFF){
+			return 0;
+		}
+	}
+	return 1;
+}
+
+
+

@@ -2175,11 +2175,6 @@
               <FilePath>..\Bootloader\flash_if.c</FilePath>
             </File>
             <File>
-              <FileName>sPlcEprom.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\dwLaser_Application\MCU_Application\sPlcPort\sPlcEprom.c</FilePath>
-            </File>
-            <File>
               <FileName>libcrc.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\dwLaser_Application\MCU_Application\MainApp\libcrc.c</FilePath>

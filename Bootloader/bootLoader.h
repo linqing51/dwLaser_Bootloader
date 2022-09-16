@@ -13,8 +13,8 @@
 #include "flash_if.h"
 #include "usart.h"
 /*****************************************************************************/
+#include "libcrc.h"
 #include "..\..\dwLaser_Application\MCU_Application\sPlc\sPlcConfig.h"
-#include "..\..\dwLaser_Application\MCU_Application\sPlcPort\sPlcEprom.h"
 /*****************************************************************************/
 extern uint8_t usbReady;//USB DISK¾ÍÐ÷
 /*****************************************************************************/
