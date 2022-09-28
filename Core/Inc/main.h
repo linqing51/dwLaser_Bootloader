@@ -107,10 +107,10 @@ void Error_Handler(void);
 #define OTG_FS_PSOC_GPIO_Port GPIOC
 #define OTG_FS_PSON_Pin GPIO_PIN_8
 #define OTG_FS_PSON_GPIO_Port GPIOA
-#define LASER_TRIG_IN_Pin GPIO_PIN_15
-#define LASER_TRIG_IN_GPIO_Port GPIOA
-#define LASER_EXT_ENA_Pin GPIO_PIN_10
-#define LASER_EXT_ENA_GPIO_Port GPIOC
+#define LASER_EXT_ENA_Pin GPIO_PIN_15
+#define LASER_EXT_ENA_GPIO_Port GPIOA
+#define LASER_TRIG_IN_Pin GPIO_PIN_10
+#define LASER_TRIG_IN_GPIO_Port GPIOC
 #define ESTOP_NC_IN_Pin GPIO_PIN_11
 #define ESTOP_NC_IN_GPIO_Port GPIOC
 #define INTERLOCK_IN_Pin GPIO_PIN_12
@@ -119,12 +119,12 @@ void Error_Handler(void);
 #define LINK_LED_GPIO_Port GPIOD
 #define TEC_OUT_Pin GPIO_PIN_4
 #define TEC_OUT_GPIO_Port GPIOB
-#define ALARM_LED_OUT_Pin GPIO_PIN_5
-#define ALARM_LED_OUT_GPIO_Port GPIOB
+#define LASER2_LED_OUT_Pin GPIO_PIN_5
+#define LASER2_LED_OUT_GPIO_Port GPIOB
 #define LASER1_LED_OUT_Pin GPIO_PIN_6
 #define LASER1_LED_OUT_GPIO_Port GPIOB
-#define LASER2_LED_OUT_Pin GPIO_PIN_7
-#define LASER2_LED_OUT_GPIO_Port GPIOB
+#define ALARM_LED_OUT_Pin GPIO_PIN_7
+#define ALARM_LED_OUT_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

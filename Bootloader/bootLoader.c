@@ -199,6 +199,7 @@ void bootLoadProcess(void){//bootload 执行程序
 			break;
 		}
 		case BT_STATE_USBHOST_INIT:{//在USB HOST上挂载FATFS
+			SET_ALARM_LED(GPIO_PIN_SET);
 			retUsbH = f_mount(&USBH_fatfs, FATFS_ROOT, 0);
 			if(retUsbH != FR_OK){//挂载U盘失败
 				printf("Bootloader:Mount Fatfs errror:%d!\n", retUsbH);
@@ -495,6 +496,7 @@ static uint32_t updateMcuApp(void){//更新MCU APP
 	crc32Clear();
 	while(readflag){
 		/* Read maximum 512 Kbyte from the selected file */
+		FLIP_LINK_LED();
 		f_read(&McuFile, RAM_Buf, BUFFER_SIZE, (void*)&bytesread);
 		crc32 = crc32Calculate(RAM_Buf, bytesread);
 		/* Temp variable */
@@ -503,7 +505,6 @@ static uint32_t updateMcuApp(void){//更新MCU APP
 		if(TmpReadSize < BUFFER_SIZE){
 			readflag = FALSE;
 		}
-		FLIP_LINK_LED();
 		/* Program flash memory */
 		for(programcounter = 0; programcounter < TmpReadSize; programcounter += 4){
 			/* Write word into flash memory */
@@ -513,7 +514,6 @@ static uint32_t updateMcuApp(void){//更新MCU APP
 		}
 		/* Update last programmed address value */
 		LastPGAddress += TmpReadSize;
-		FLIP_LINK_LED();
 	}
 	for(i = LastPGAddress;i < APPLICATION_FLASH_END_ADDRESS;i ++){//补完剩余CRC
 		crc32 = crc32CalculateAdd(0xFF);
