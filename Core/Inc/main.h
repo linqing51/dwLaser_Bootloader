@@ -103,6 +103,8 @@ void Error_Handler(void);
 #define OTG_FS_PSOC_GPIO_Port GPIOC
 #define OTG_FS_PSON_Pin GPIO_PIN_8
 #define OTG_FS_PSON_GPIO_Port GPIOA
+#define LAS_AIM_Pin GPIO_PIN_15
+#define LAS_AIM_GPIO_Port GPIOA
 #define ERR_LED_Pin GPIO_PIN_10
 #define ERR_LED_GPIO_Port GPIOC
 #define LAS_PWM3_Pin GPIO_PIN_11

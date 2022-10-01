@@ -62,8 +62,8 @@
 #define GET_LASER_CH3														HAL_GPIO_ReadPin(LAS_PWM3_GPIO_Port, LAS_PWM3_Pin)
 #define SET_SPEAKER_ON													HAL_GPIO_WritePin(SPK_EN_GPIO_Port, SPK_EN_Pin, GPIO_PIN_RESET)
 #define SET_SPEAKER_OFF													HAL_GPIO_WritePin(SPK_EN_GPIO_Port, SPK_EN_Pin, GPIO_PIN_SET)
-#define SET_AIM_ON										   				HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1)
-#define SET_AIM_OFF															HAL_TIM_PWM_Stop(&htim2, TIM_CHANNEL_1)
+#define SET_AIM_ON										   				HAL_GPIO_WritePin(LAS_AIM_GPIO_Port, LAS_AIM_Pin, GPIO_PIN_SET)
+#define SET_AIM_OFF															HAL_GPIO_WritePin(LAS_AIM_GPIO_Port, LAS_AIM_Pin, GPIO_PIN_RESET)
 #define SET_FAN_ON															HAL_GPIO_WritePin(LAS_FAN_GPIO_Port, LAS_FAN_Pin, GPIO_PIN_SET)
 #define SET_FAN_OFF															HAL_GPIO_WritePin(LAS_FAN_GPIO_Port, LAS_FAN_Pin, GPIO_PIN_RESET)
 #define SET_TEC_ON															HAL_GPIO_WritePin(LAS_TEC_GPIO_Port, LAS_TEC_Pin, GPIO_PIN_SET)
@@ -327,7 +327,8 @@ void bootLoadProcess(void){//bootload 执行程序
 	//clearEprom(CLEAR_EPROM_ALL);
 	switch(bootLoadState){
 		case BT_STATE_IDLE:{//开机等待U盘识别     
-			SET_FAN_OFF;			
+			SET_AIM_OFF;
+			SET_FAN_OFF;		
 			SET_RED_LED_OFF;
 			SET_GREEN_LED_OFF;
 			SET_BLUE_LED_OFF;	
