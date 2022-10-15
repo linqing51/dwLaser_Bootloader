@@ -138,11 +138,13 @@ extern I2C_HandleTypeDef hi2c1;
 extern USBH_HandleTypeDef hUsbHostFS;
 /*****************************************************************************/
 uint32_t crcEpromMcu, crcEpromLcd;//EPROMÖĞ´¢´æµÄCRC¼ÇÂ¼Öµ
-
 uint32_t TmpReadSize = 0x00;
 uint32_t RamAddress = 0x00;
 static __IO uint32_t LastPGAddress = APPLICATION_FLASH_START_ADDRESS;
 uint8_t RAM_Buf[BUFFER_SIZE] = {0x00};//ÎÄ¼ş¶ÁĞ´»º³å
+/*****************************************************************************/
+const char BootLoadMainVer __attribute__((at(BOOTLOAD_MAIN_ADDRESS)))   		= '1';
+const char BootLoadMinorVer __attribute__((at(BOOTLAOD_MINOR_ADDRESS)))  		= '2';
 /*****************************************************************************/
 uint8_t cmdShakeHandOp[] = {0xEE,0x04,0xFF,0xFC,0xFF,0xFF};
 uint8_t cmdShakeHandRespondOp[] = {0xEE,0x55,0xFF,0xFC,0xFF,0xFF};
@@ -170,8 +172,10 @@ FIL SepromFile;//FATFS File Object EPROM->UDISK
 FIL LepromFile;//FATFS File Object UDISK->EPROM
 DIR	FileDir;//FATFS ÎÄ¼şÄ¿Â¼
 FILINFO FileInfo;//FATFS ÎÄ¼şĞÅÏ¢
+/*****************************************************************************/
 static uint8_t bootLoadState;
-uint8_t usbReady;//USB DISK¾ÍĞ÷
+static uint8_t usbReady;//USB DISK¾ÍĞ÷
+static uint32_t crcFlash, crcUdisk;
 int32_t releaseTime0, releaseTime1, overTime, releaseCounter;
 uint32_t JumpAddress;
 pFunction Jump_To_Application;
@@ -205,6 +209,8 @@ static uint8_t checkBlank(uint32_t adr, uint32_t size);//MCU Flash ²é¿Õ
 static void clearEprom(clarmEpromCmd_t cmd);//Çå³ıEPROMÄÚÈİ
 static void listEpromTable(void);
 static uint8_t cmpByte(uint8_t *psrc, uint8_t *pdist, uint16_t len);
+static FRESULT crcLcdFile(char* scanPath);
+static FRESULT updateLcdFile(char* scanPath);
 /******************************************************************************/
 static uint8_t cmpByte(uint8_t *psrc, uint8_t *pdist, uint16_t len){
 	uint16_t i;
@@ -319,19 +325,18 @@ void bootLoadInit(void){//Òıµ¼³ÌĞò³õÊ¼»¯
 }
 void bootLoadProcess(void){//bootload Ö´ĞĞ³ÌĞò
 	HAL_StatusTypeDef ret;
-	uint8_t fileBuff[64];
-	uint32_t crcFlash, crcUdisk;
+	uint8_t fileBuff[256];
 	uint32_t brByte;//Êµ¼Ê¶ÁÈ¡µÄ×Ö½ÚÊı
-	//uint32_t bwByte;//Êµ¼ÊĞ´ÈëµÄ×Ö½ÚÊı
-	//×¢²áÒ»¸öFATFSÎÄ¼şÏµÍ³
-	//clearEprom(CLEAR_EPROM_ALL);
+	crcFlash = 0;
+	crcUdisk = 0;;
 	switch(bootLoadState){
 		case BT_STATE_IDLE:{//¿ª»úµÈ´ıUÅÌÊ¶±ğ     
 			SET_AIM_OFF;
 			SET_FAN_OFF;		
 			SET_RED_LED_OFF;
 			SET_GREEN_LED_OFF;
-			SET_BLUE_LED_OFF;	
+			SET_BLUE_LED_OFF;
+			printf("\n\n\n\n");
 			printf("Bootloader:Start...............\n");
 			listEpromTable();
 			readStm32UniqueID();
@@ -350,7 +355,8 @@ void bootLoadProcess(void){//bootload Ö´ĞĞ³ÌĞò
 			}
 			else{
 				printf("Bootloader:Read eprom LCD FW CRC32 fail!\n");
-			}			
+			}
+			printf("Bootloader:Version->%c.%c\n", BootLoadMainVer, BootLoadMinorVer);
 			printf("Bootloader:UniqueID->0x%08X%08X%08X\n", UniqueId[0], UniqueId[1], UniqueId[2]);
 			printf("Bootloader:Mcu flash size->%d Kbytes\n", cpuGetFlashSize());
 			printf("Bootloader:Build->%s:%s\n", __DATE__, __TIME__);
@@ -375,19 +381,9 @@ void bootLoadProcess(void){//bootload Ö´ĞĞ³ÌĞò
 				SET_RED_LED_OFF;
 				SET_GREEN_LED_OFF;
 				SET_BLUE_LED_OFF;
-				bootLoadState = BT_STATE_LOAD_FWINFO;//½øÈëUSB¸üĞÂAPPÁ÷³Ì
+				bootLoadState = BT_STATE_USBHOST_INIT;//½øÈëUSB¸üĞÂAPPÁ÷³Ì
 			}
 			else{//°²È«Á¬Ëø²åÈë
-				bootLoadState = BT_STATE_RUN_APP;//½øÈëÔËĞĞAPPÁ÷³Ì
-			}
-			break;
-		}
-		case BT_STATE_LOAD_FWINFO:{
-			if(ret == HAL_OK){
-				bootLoadState = BT_STATE_USBHOST_INIT;
-				printf("Bootloader:Load eprom done!\n");
-			}
-			else{
 				bootLoadState = BT_STATE_RUN_APP;//½øÈëÔËĞĞAPPÁ÷³Ì
 			}
 			break;
@@ -527,18 +523,9 @@ void bootLoadProcess(void){//bootload Ö´ĞĞ³ÌĞò
 			break;
 		}
 		case BT_STATE_UPDATE_LCD_APP:{//¸üĞÂLCDÓ¦ÓÃ³ÌĞò			
-			//private
-			crcUdisk = getNewLcdAppCrc("/private/main.lua");//¼ÆËãUÅÌÖĞMCU APP¹Ì¼şCRC32
-			//private/bin
-			crcUdisk += getNewLcdAppCrc("/private/bin/font.idx");
-			crcUdisk += getNewLcdAppCrc("/private/bin/image.bin");
-			crcUdisk += getNewLcdAppCrc("/private/bin/image.idx");
-			crcUdisk += getNewLcdAppCrc("/private/bin/pinyin.bin");
-			crcUdisk += getNewLcdAppCrc("/private/bin/screen.bin");
-			crcUdisk += getNewLcdAppCrc("/private/bin/system.bin");
-			//private/truefont
-			crcUdisk += getNewLcdAppCrc("/private/truefont/myriad.ttf");
-			crcUdisk += getNewLcdAppCrc("/private/truefont/truefont.ini");
+			crcUdisk = 0;
+			strcpy((char*)fileBuff, "/private");
+			crcLcdFile((char*)fileBuff);//É¨ÃèÎÄ¼ş
 			printf("Bootloader:LCD crcLcd:%08XH,crcUdisk:%08XH!\n", crcEpromLcd, crcUdisk);
 			if(crcUdisk == crcEpromLcd){//Ğ£ÑéÂëÏàÍ¬Ìø¹ı¸üĞÂ
 				printf("Bootloader:Check lcd app crc same,skip!\n");
@@ -546,18 +533,11 @@ void bootLoadProcess(void){//bootload Ö´ĞĞ³ÌĞò
 				break;
 			}
 			prepareUpdateLcd();//LCDÔ¶³ÌÉı¼¶×¼±¸
-			//private
-			crcUdisk = updateLcdApp("/private/main.lua");//¼ÆËãUÅÌÖĞMCU APP¹Ì¼şCRC32
-			//private/bin
-			crcUdisk += updateLcdApp("/private/bin/font.idx");
-			crcUdisk += updateLcdApp("/private/bin/image.bin");
-			crcUdisk += updateLcdApp("/private/bin/image.idx");
-			crcUdisk += updateLcdApp("/private/bin/pinyin.bin");
-			crcUdisk += updateLcdApp("/private/bin/screen.bin");
-			crcUdisk += updateLcdApp("/private/bin/system.bin");
-			//private/truefont
-			crcUdisk += updateLcdApp("/private/truefont/myriad.ttf");
-			crcUdisk += updateLcdApp("/private/truefont/truefont.ini");
+			
+			crcUdisk = 0;
+			strcpy((char*)fileBuff, "/private");
+			updateLcdFile((char*)fileBuff);
+			
 			crcEpromLcd = crcUdisk;//¸üĞÂEPROMÖĞLCD APP CRCÖµ
 			clearEprom(CLEAR_EPROM_LCD_FIRMWARE_CRC);
 			epromWriteDword(CONFIG_EPROM_LCD_FW_CRC, &crcEpromLcd);
@@ -565,7 +545,7 @@ void bootLoadProcess(void){//bootload Ö´ĞĞ³ÌĞò
 			//µÈ´ı60Ãë LCD FLASHĞ´ÈëÍê³ÉºóÖØÆô
 			//ÖØÆôHMI
 			dp_display_text_num(cmdResetHmiOp, strlen((char*)cmdResetHmiOp));	
-			HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
+			HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
 			bootLoadState = BT_STATE_RESET;//¸üĞÂAPP
 			break;
 		}
@@ -590,19 +570,11 @@ void bootLoadProcess(void){//bootload Ö´ĞĞ³ÌĞò
 				epromWriteDword(CONFIG_EPROM_MCU_FW_CRC, &crcEpromMcu);
 				printf("Bootloader:Update mcu app new crc32 sucess.\n");
 			}
+			
 			//LCD ¸üĞÂ
-			//private
-			crcUdisk = getNewLcdAppCrc("/private/main.lua");//¼ÆËãUÅÌÖĞMCU APP¹Ì¼şCRC32
-			//private/bin
-			crcUdisk += getNewLcdAppCrc("/private/bin/font.idx");
-			crcUdisk += getNewLcdAppCrc("/private/bin/image.bin");
-			crcUdisk += getNewLcdAppCrc("/private/bin/image.idx");
-			crcUdisk += getNewLcdAppCrc("/private/bin/pinyin.bin");
-			crcUdisk += getNewLcdAppCrc("/private/bin/screen.bin");
-			crcUdisk += getNewLcdAppCrc("/private/bin/system.bin");
-			//private/truefont
-			crcUdisk += getNewLcdAppCrc("/private/truefont/myriad.ttf");
-			crcUdisk += getNewLcdAppCrc("/private/truefont/truefont.ini");
+			crcUdisk = 0;
+			strcpy((char*)fileBuff, "/private");
+			crcLcdFile((char*)fileBuff);//É¨ÃèÎÄ¼ş
 			printf("Bootloader:LCD crcLcd:%08XH,crcUdisk:%08XH!\n", crcEpromLcd, crcUdisk);
 			if(crcUdisk == crcEpromLcd){//Ğ£ÑéÂëÏàÍ¬Ìø¹ı¸üĞÂ
 				printf("Bootloader:Check lcd app crc same,skip!\n");
@@ -610,18 +582,11 @@ void bootLoadProcess(void){//bootload Ö´ĞĞ³ÌĞò
 				break;
 			}
 			prepareUpdateLcd();//LCDÔ¶³ÌÉı¼¶×¼±¸
-			//private
-			crcUdisk = updateLcdApp("/private/main.lua");//¼ÆËãUÅÌÖĞMCU APP¹Ì¼şCRC32
-			//private/bin
-			crcUdisk += updateLcdApp("/private/bin/font.idx");
-			crcUdisk += updateLcdApp("/private/bin/image.bin");
-			crcUdisk += updateLcdApp("/private/bin/image.idx");
-			crcUdisk += updateLcdApp("/private/bin/pinyin.bin");
-			crcUdisk += updateLcdApp("/private/bin/screen.bin");
-			crcUdisk += updateLcdApp("/private/bin/system.bin");
-			//private/truefont
-			crcUdisk += updateLcdApp("/private/truefont/myriad.ttf");
-			crcUdisk += updateLcdApp("/private/truefont/truefont.ini");
+			
+			crcUdisk = 0;
+			strcpy((char*)fileBuff, "/private");
+			updateLcdFile((char*)fileBuff);
+			
 			crcEpromLcd = crcUdisk;//¸üĞÂEPROMÖĞLCD APP CRCÖµ
 			clearEprom(CLEAR_EPROM_LCD_FIRMWARE_CRC);
 			epromWriteDword(CONFIG_EPROM_LCD_FW_CRC, &crcEpromLcd);
@@ -629,7 +594,7 @@ void bootLoadProcess(void){//bootload Ö´ĞĞ³ÌĞò
 			//µÈ´ı60Ãë LCD FLASHĞ´ÈëÍê³ÉºóÖØÆô
 			//ÖØÆôHMI
 			dp_display_text_num(cmdResetHmiOp, strlen((char*)cmdResetHmiOp));	
-			HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
+			HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
 			bootLoadState = BT_STATE_RESET;//¸üĞÂAPP
 			break;
 		}
@@ -905,7 +870,7 @@ static void prepareUpdateLcd(void){//LCDÔ¶³ÌÉı¼¶×¼±¸
 	dp_display_text_num(cmdFormatOp, strlen((char*)cmdFormatOp));//¸ñÊ½»¯ÎÄ¼şÏµÍ³
 	HAL_Delay(3000);
 }
-static uint32_t updateLcdApp(char* filePath){//¸üĞÂLCD APP
+static uint32_t updateLcdApp(char* filePath){//¸üĞÂLCD APPµ¥¸öÎÄ¼ş
 	UART_HandleTypeDef *puart;
 	HAL_StatusTypeDef uRet;
 	uint32_t crc32, i;
@@ -1252,7 +1217,6 @@ static HAL_StatusTypeDef epromReadByte(uint16_t ReadAddr, uint8_t *rdat){//ÔÚÖ¸¶
 //ReadAddr:¿ªÊ¼¶ÁÊıµÄµØÖ·  
 //·µ»ØÖµ  :Êı¾İ				  
 	HAL_StatusTypeDef ret;
-#if CONFIG_SPLC_USING_EPROM == 1
 	if(ReadAddr > (CONFIG_EPROM_SIZE - 1)){//Ğ´µØÖ·³¬¹ıÈİÁ¿
 		ret = HAL_ERROR;
 		return ret;
@@ -1267,24 +1231,14 @@ static HAL_StatusTypeDef epromReadByte(uint16_t ReadAddr, uint8_t *rdat){//ÔÚÖ¸¶
 	if(ret != HAL_OK){
 		ret = HAL_I2C_DeInit(&hi2c1);//ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
 		ret = HAL_I2C_Init(&hi2c1);//Õâ¾äÖØĞÂ³õÊ¼»¯I2C¿ØÖÆÆ÷
-#if CONFIG_DEBUG_EPROM == 1
-		printf("%s,%d,%s:eprom read byte fail,adr:%d,dat:%d\n", __FILE__, __LINE__, __func__, ReadAddr, *rdat);
-#endif
 	}
-#if CONFIG_DEBUG_EPROM == 1
-	printf("%s,%d,%s:eprom read byte done,adr:%d,dat:%d\n", __FILE__, __LINE__, __func__, ReadAddr, *rdat);
-#endif
 	return ret;
-#else
-	return HAL_OK;
-#endif
 }
 static HAL_StatusTypeDef epromReadHword(uint16_t ReadAddr, uint16_t *rdat){//ÔÚÖ¸¶¨µØÖ·¿ªÊ¼¶Á³ö16Î»Êı
 //¸Ãº¯ÊıÓÃÓÚ¶Á³ö16bit»òÕß32bitµÄÊı¾İ.
 //ReadAddr   :¿ªÊ¼¶Á³öµÄµØÖ· 
 //·µ»ØÖµ     :Êı¾İ  	
 	HAL_StatusTypeDef ret;
-#if CONFIG_SPLC_USING_EPROM == 1
 	if((ReadAddr + 1) > (CONFIG_EPROM_SIZE - 1)){//Ğ´µØÖ·³¬¹ıÈİÁ¿
 		ret = HAL_ERROR;
 		return ret;
@@ -1299,24 +1253,14 @@ static HAL_StatusTypeDef epromReadHword(uint16_t ReadAddr, uint16_t *rdat){//ÔÚÖ
 	if(ret != HAL_OK){
 		ret = HAL_I2C_DeInit(&hi2c1);        //ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
 		ret = HAL_I2C_Init(&hi2c1);          //Õâ¾äÖØĞÂ³õÊ¼»¯I2C¿ØÖÆÆ÷
-#if CONFIG_DEBUG_EPROM == 1
-		printf("%s,%d,%s:eprom read hword fail,adr:%d,dat:%d\n", __FILE__, __LINE__, __func__, ReadAddr, *rdat);
-#endif
 	}
-#if CONFIG_DEBUG_EPROM == 1
-	printf("%s,%d,%s:Eprom read hword done,adr:%d,dat:%d\n", __FILE__, __LINE__, __func__, ReadAddr, *rdat);
-#endif
 	return ret;
-#else
-	return HAL_OK;
-#endif	
 }
 static HAL_StatusTypeDef epromReadDword(uint16_t ReadAddr, uint32_t *rdat){////ÔÚÖ¸¶¨µØÖ·¿ªÊ¼¶Á³ö32Î»Êı
 //¸Ãº¯ÊıÓÃÓÚ¶Á³ö32bitµÄÊı¾İ.
 //ReadAddr   :¿ªÊ¼¶Á³öµÄµØÖ· 
 //·µ»ØÖµ     :Êı¾İ  	
 	HAL_StatusTypeDef ret;
-#if CONFIG_SPLC_USING_EPROM == 1	
 	if((ReadAddr + 3) > (CONFIG_EPROM_SIZE - 1)){//Ğ´µØÖ·³¬¹ıÈİÁ¿
 		ret = HAL_ERROR;
 		return ret;
@@ -1331,23 +1275,13 @@ static HAL_StatusTypeDef epromReadDword(uint16_t ReadAddr, uint32_t *rdat){////Ô
 	if(ret != HAL_OK){
 		ret = HAL_I2C_DeInit(&hi2c1);        //ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
 		ret = HAL_I2C_Init(&hi2c1);          //Õâ¾äÖØĞÂ³õÊ¼»¯I2C¿ØÖÆÆ÷
-#if CONFIG_DEBUG_EPROM == 1
-		printf("%s,%d,%s:eprom read dword fail,adr:%d,dat:%d\n", __FILE__, __LINE__, __func__, ReadAddr, *rdat);
-#endif
 	}
-#if CONFIG_DEBUG_EPROM == 1
-	printf("%s,%d,%s:eprom read dword done,adr:%d,dat:%d\n", __FILE__, __LINE__, __func__, ReadAddr, *rdat);
-#endif
 	return ret;
-#else
-	return HAL_OK;
-#endif
 }
 static HAL_StatusTypeDef epromWriteByte(uint16_t WriteAddr, uint8_t *wdat){//ÔÚÖ¸¶¨µØÖ·Ğ´Èë8Î»Êı¾İ
 //WriteAddr  :Ğ´ÈëÊı¾İµÄÄ¿µÄµØÖ·    
 //DataToWrite:ÒªĞ´ÈëµÄÊı¾İ
 	HAL_StatusTypeDef ret;
-#if CONFIG_SPLC_USING_EPROM == 1	
 	if(WriteAddr > (CONFIG_EPROM_SIZE - 1)){//Ğ´µØÖ·³¬¹ıÈİÁ¿
 		ret = HAL_ERROR;
 		return ret;
@@ -1362,24 +1296,14 @@ static HAL_StatusTypeDef epromWriteByte(uint16_t WriteAddr, uint8_t *wdat){//ÔÚÖ
 	if(ret != HAL_OK){
 		ret = HAL_I2C_DeInit(&hi2c1);//ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
 		ret = HAL_I2C_Init(&hi2c1);//Õâ¾äÖØĞÂ³õÊ¼»¯I2C¿ØÖÆÆ÷
-#if CONFIG_DEBUG_EPROM == 1
-		printf("%s,%d,%s:Eprom write byte fail,adr:%d,dat:%d\n", __FILE__, __LINE__, __func__, WriteAddr, wdat);
-#endif
 	}
-#if CONFIG_DEBUG_EPROM == 1
-	printf("%s,%d,%s:eprom write byte done,adr:%d,dat:%d\n", __FILE__, __LINE__, __func__, WriteAddr, wdat);
-#endif
 	return ret;
-#else
-	return HAL_OK;
-#endif
 }
 static HAL_StatusTypeDef epromWriteHword(uint16_t WriteAddr, uint16_t *wdat){//ÔÚµÄÖ¸¶¨µØÖ·¿ªÊ¼Ğ´Èë16Î»Êı
 //¸Ãº¯ÊıÓÃÓÚĞ´Èë16bitµÄÊı¾İ.
 //WriteAddr  :¿ªÊ¼Ğ´ÈëµÄµØÖ·  
 //DataToWrite:Êı¾İÊı×éÊ×µØÖ·
 	HAL_StatusTypeDef ret;
-#if CONFIG_SPLC_USING_EPROM == 1	
 	if((WriteAddr + 1) > (CONFIG_EPROM_SIZE - 1)){//Ğ´µØÖ·³¬¹ıÈİÁ¿
 		ret = HAL_ERROR;
 		return ret;
@@ -1394,24 +1318,14 @@ static HAL_StatusTypeDef epromWriteHword(uint16_t WriteAddr, uint16_t *wdat){//Ô
 	if(ret != HAL_OK){
 		ret = HAL_I2C_DeInit(&hi2c1);//ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
 		ret = HAL_I2C_Init(&hi2c1);//Õâ¾äÖØĞÂ³õÊ¼»¯I2C¿ØÖÆÆ÷	
-#if CONFIG_DEBUG_EPROM == 1
-		printf("%s,%d,%s:Eprom write hword fail,adr:%d,dat:%d\n", __FILE__, __LINE__, __func__, WriteAddr, wdat);
-#endif
 	}
-#if CONFIG_DEBUG_EPROM == 1
-	printf("%s,%d,%s:eprom write hword done,adr:%d,dat:%d\n", __FILE__, __LINE__, __func__, WriteAddr, wdat);
-#endif
 	return ret;
-#else
-	return HAL_OK;
-#endif
 }
 static HAL_StatusTypeDef epromWriteDword(uint16_t WriteAddr, uint32_t *wdat){//ÔÚµÄÖ¸¶¨µØÖ·¿ªÊ¼Ğ´Èë32Î»Êı
 //¸Ãº¯ÊıÓÃÓÚĞ´Èë32bitµÄÊı¾İ.
 //WriteAddr  :¿ªÊ¼Ğ´ÈëµÄµØÖ·  
 //DataToWrite:Êı¾İÊı×éÊ×µØÖ·
 	HAL_StatusTypeDef ret;
-#if CONFIG_SPLC_USING_EPROM == 1
 	if((WriteAddr + 3) >= (CONFIG_EPROM_SIZE - 1)){//Ğ´µØÖ·³¬¹ıÈİÁ¿
 		ret = HAL_ERROR;
 		return ret;
@@ -1426,24 +1340,14 @@ static HAL_StatusTypeDef epromWriteDword(uint16_t WriteAddr, uint32_t *wdat){//Ô
 	if(ret != HAL_OK){
 		ret = HAL_I2C_DeInit(&hi2c1);        //ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
 		ret = HAL_I2C_Init(&hi2c1);          //Õâ¾äÖØĞÂ³õÊ¼»¯I2C¿ØÖÆÆ÷
-#if CONFIG_DEBUG_EPROM == 1
-		printf("%s,%d,%s:Eprom write dword fail,adr:%d,dat:%d\n", __FILE__, __LINE__, __func__, WriteAddr, wdat);
-#endif
 	}
-#if CONFIG_DEBUG_EPROM == 1
-	printf("%s,%d,%s:eprom write hword done,adr:%d,dat:%d\n", __FILE__, __LINE__, __func__, WriteAddr, wdat);
-#endif
 	return ret;
-#else
-	return HAL_OK;
-#endif
 }   
 static HAL_StatusTypeDef epromRead(uint16_t ReadAddr, uint8_t *pBuffer, uint16_t NumToRead){//ÔÚµÄÖ¸¶¨µØÖ·¿ªÊ¼¶Á³öÖ¸¶¨¸öÊıµÄÊı¾İ
 //ReadAddr :¿ªÊ¼¶Á³öµÄµØÖ· ¶Ô24c02Îª0~255
 //pBuffer  :Êı¾İÊı×éÊ×µØÖ·
 //NumToRead:Òª¶Á³öÊı¾İµÄ¸öÊı
 	HAL_StatusTypeDef ret;
-#if CONFIG_SPLC_USING_EPROM == 1
 	uint16_t rAddr, rBlock, rByte, doBlock;
 	uint8_t* rBuffer;
 	if((ReadAddr + NumToRead) > CONFIG_EPROM_SIZE){//¶ÁµØÖ·³¬¹ıÏŞÖÆ
@@ -1459,9 +1363,6 @@ static HAL_StatusTypeDef epromRead(uint16_t ReadAddr, uint8_t *pBuffer, uint16_t
 		if(ret != HAL_OK){
 			ret = HAL_I2C_DeInit(&hi2c1);//ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
 			ret = HAL_I2C_Init(&hi2c1);//Õâ¾äÖØĞÂ³õÊ¼»¯I2C¿ØÖÆÆ÷
-#if CONFIG_DEBUG_EPROM == 1
-			printf("%s,%d,%s:eprom read block fail,adr:%d,num:%d\n", __FILE__, __LINE__, __func__, ReadAddr, NumToRead);
-#endif
 		}
 		rAddr += CONFIG_EPROM_PAGE_SIZE;
 		rBuffer += CONFIG_EPROM_PAGE_SIZE;
@@ -1471,27 +1372,15 @@ static HAL_StatusTypeDef epromRead(uint16_t ReadAddr, uint8_t *pBuffer, uint16_t
 		if(ret != HAL_OK){
 			ret = HAL_I2C_DeInit(&hi2c1);        //ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
 			ret = HAL_I2C_Init(&hi2c1);          //Õâ¾äÖØĞÂ³õÊ¼»¯I2C¿ØÖÆÆ÷
-#if CONFIG_DEBUG_EPROM == 1
-			printf("%s,%d,%s:eprom read rbyte fail,adr:%d,num:%d\n", __FILE__, __LINE__, __func__, ReadAddr, NumToRead);
-#endif
-		}
-		else{
-#if CONFIG_DEBUG_EPROM == 1
-			printf("%s,%d,%s:eprom read multibyte done,adr:%d,num:%d\n", __FILE__, __LINE__, __func__, ReadAddr, NumToRead);
-#endif
 		}
 	}
 	return ret;	
-#else
-	return HAL_OK;
-#endif
 }  
 static HAL_StatusTypeDef epromWrite(uint16_t WriteAddr, uint8_t *pBuffer, uint16_t NumToWrite){//ÔÚµÄÖ¸¶¨µØÖ·¿ªÊ¼Ğ´ÈëÖ¸¶¨¸öÊıµÄÊı¾İ
 //WriteAddr :¿ªÊ¼Ğ´ÈëµÄµØÖ· ¶Ô24c02Îª0~255
 //pBuffer   :Êı¾İÊı×éÊ×µØÖ·
 //NumToWrite:ÒªĞ´ÈëÊı¾İµÄ¸öÊı
 	HAL_StatusTypeDef ret;
-#if CONFIG_SPLC_USING_EPROM == 1
 	uint16_t wAddr, wBlock, wByte, doBlock;
 	uint8_t* wBuffer;
 	if((WriteAddr + NumToWrite) > CONFIG_EPROM_SIZE){//¶ÁµØÖ·³¬¹ıÏŞÖÆ
@@ -1507,9 +1396,6 @@ static HAL_StatusTypeDef epromWrite(uint16_t WriteAddr, uint8_t *pBuffer, uint16
 		if(ret != HAL_OK){
 			ret = HAL_I2C_DeInit(&hi2c1);        //ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
 			ret = HAL_I2C_Init(&hi2c1);          //Õâ¾äÖØĞÂ³õÊ¼»¯I2C¿ØÖÆÆ÷
-#if CONFIG_DEBUG_EPROM == 1
-			printf("%s,%d,%s:eprom write block fail,adr:%d,num:%d\n", __FILE__, __LINE__, __func__, WriteAddr, NumToWrite);
-#endif		
 		}
 		wAddr += CONFIG_EPROM_PAGE_SIZE;
 		wBuffer += CONFIG_EPROM_PAGE_SIZE;
@@ -1522,21 +1408,12 @@ static HAL_StatusTypeDef epromWrite(uint16_t WriteAddr, uint8_t *pBuffer, uint16
 		if(ret != HAL_OK){
 			ret = HAL_I2C_DeInit(&hi2c1);        //ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
 			ret = HAL_I2C_Init(&hi2c1);          //Õâ¾äÖØĞÂ³õÊ¼»¯I2C¿ØÖÆÆ÷
-#if CONFIG_DEBUG_EPROM == 1
-			printf("%s,%d,%s:eprom write remain byte fail,adr:%d,num:%d\n", __FILE__, __LINE__, __func__, WriteAddr, NumToWrite);
-#endif	
 		}
 	}
 #if CONFIG_EPROM_WRITE_DELAY > 0
 	HAL_Delay(CONFIG_EPROM_WRITE_DELAY);
 #endif
-#if CONFIG_DEBUG_EPROM == 1
-	printf("%s,%d,%s:eprom write multibyte done,adr:%d,num:%d\n", __FILE__, __LINE__, __func__, WriteAddr, NumToWrite);
-#endif
 	return ret;
-#else
-	return HAL_OK;
-#endif
 }
 /*****************************************************************************/
 static void listEpromTable(void){//Êä³öEPROM·Ö²¼±í
@@ -1627,3 +1504,75 @@ static uint8_t checkBlank(uint32_t adr, uint32_t size){//MCU Flash ²é¿Õ
 	}
 	return true;
 }
+
+static FRESULT crcLcdFile(char* scanPath){//É¨ÃèÎÄ¼ş¼ĞÄÚÈ«²¿ÎÄ¼ş²¢¼ÆËãCRCÖµ
+	DIR memofsrcdir;
+	DIR *srcdir;
+	FILINFO menoffinfo;
+	FILINFO *finfo;
+	char fileName[256];
+	char *fn;
+	finfo=&menoffinfo; 
+	srcdir=&memofsrcdir;  //Ô´Ä¿Â¼
+	retUsbH = f_opendir(srcdir, (const TCHAR*)scanPath);
+	while(retUsbH == FR_OK){
+		retUsbH = f_readdir(srcdir, finfo);
+		if(retUsbH != FR_OK || finfo->fname[0] == 0){//ÎŞĞ§ÎÄ¼ş
+			break;
+		}
+		if(finfo->fname[0] == '.'){
+			continue;
+		}
+		fn = finfo->fname;
+		memset(fileName, 0x0, sizeof(fileName));
+		sprintf(fileName, "%s%c%s",scanPath , '/', fn);
+		if(finfo->fattrib & AM_DIR){//ÎÄ¼ş¼Ğ
+			retUsbH = crcLcdFile(fileName);
+			if(retUsbH != FR_OK){
+				return retUsbH;
+			}
+		}
+		else{
+			printf("Bootloader:crc Lcd file:%s\n", fileName);
+			crcUdisk += getNewLcdAppCrc(fileName);//¼ÆËãUÅÌÖĞMCU APP¹Ì¼şCRC32
+		}		
+	}
+	return retUsbH;
+}	
+
+
+static FRESULT updateLcdFile(char* scanPath){//É¨ÃèÎÄ¼ş¼ĞÄÚÈ«²¿ÎÄ¼ş²¢ÉÏ´«
+	DIR memofsrcdir;
+	DIR *srcdir;
+	FILINFO menoffinfo;
+	FILINFO *finfo;
+	char fileName[256];
+	char *fn;
+	finfo=&menoffinfo; 
+	srcdir=&memofsrcdir;  //Ô´Ä¿Â¼
+	retUsbH = f_opendir(srcdir, (const TCHAR*)scanPath);
+	while(retUsbH == FR_OK){
+		retUsbH = f_readdir(srcdir, finfo);
+		if(retUsbH != FR_OK || finfo->fname[0] == 0){//ÎŞĞ§ÎÄ¼ş
+			break;
+		}
+		if(finfo->fname[0] == '.'){
+			continue;
+		}
+		fn = finfo->fname;
+		memset(fileName, 0x0, sizeof(fileName));
+		sprintf(fileName, "%s%c%s",scanPath , '/', fn);
+		if(finfo->fattrib & AM_DIR){//ÎÄ¼ş¼Ğ
+			retUsbH = crcLcdFile(fileName);
+			if(retUsbH != FR_OK){
+				return retUsbH;
+			}
+		}
+		else{
+			printf("Bootloader:crc Lcd file:%s\n", fileName);
+			crcUdisk += updateLcdApp(fileName);//¼ÆËãUÅÌÖĞMCU APP¹Ì¼şCRC32
+		}		
+	}
+	return retUsbH;
+}
+
