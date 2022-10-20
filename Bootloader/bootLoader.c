@@ -79,8 +79,9 @@
 #define BT_STATE_UPDATE_LCD_APP									7//更新屏幕应用固件
 #define BT_STATE_UPDATE_BOTH_APP								8//更新单片机和屏固件
 #define BT_STATE_UPDATE_EPROM										9//更新UDISK->EPROM
-#define BT_STATE_DUMP_EPROM											10//储存全部EPROM到UDISK
-#define BT_STATE_CLEAT_ALL											11//清除FLASH和EPROM全部
+#define BT_STATE_UPDATE_FORCE_BOTH_APP					10//强制更新
+#define BT_STATE_DUMP_EPROM											11//储存全部EPROM到UDISK
+#define BT_STATE_CLEAT_ALL											12//清除FLASH和EPROM全部
 #define BT_STATE_RESET													90//重启
 #define BT_STATE_RUN_APP												99//跳转到APP应用程序
 
@@ -117,6 +118,9 @@
 #define GDDC_TX_TIMEOUT													0xFFFF
 #define GDDC_RETRY_TIMES												10//发送重试次数
 /*****************************************************************************/
+#define BOOTLOAD_MAIN_ADDRESS										0x0800FE00UL
+#define BOOTLAOD_MINOR_ADDRESS									0x0800FE01UL
+/*****************************************************************************/
 typedef enum {
 	CLEAR_EPROM_ALL 														= 0x01,
 	CLEAR_EPROM_NVRAM														= 0x02,
@@ -144,7 +148,7 @@ static __IO uint32_t LastPGAddress = APPLICATION_FLASH_START_ADDRESS;
 uint8_t RAM_Buf[BUFFER_SIZE] = {0x00};//文件读写缓冲
 /*****************************************************************************/
 const char BootLoadMainVer __attribute__((at(BOOTLOAD_MAIN_ADDRESS)))   		= '1';
-const char BootLoadMinorVer __attribute__((at(BOOTLAOD_MINOR_ADDRESS)))  		= '2';
+const char BootLoadMinorVer __attribute__((at(BOOTLAOD_MINOR_ADDRESS)))  		= '3';
 /*****************************************************************************/
 uint8_t cmdShakeHandOp[] = {0xEE,0x04,0xFF,0xFC,0xFF,0xFF};
 uint8_t cmdShakeHandRespondOp[] = {0xEE,0x55,0xFF,0xFC,0xFF,0xFF};
@@ -174,6 +178,7 @@ DIR	FileDir;//FATFS 文件目录
 FILINFO FileInfo;//FATFS 文件信息
 /*****************************************************************************/
 static uint8_t bootLoadState;
+static uint8_t forceUpdateMcu, forceUpdateLcd;
 static uint8_t usbReady;//USB DISK就绪
 static uint32_t crcFlash, crcUdisk;
 int32_t releaseTime0, releaseTime1, overTime, releaseCounter;
@@ -223,6 +228,8 @@ static uint8_t cmpByte(uint8_t *psrc, uint8_t *pdist, uint16_t len){
 }
 
 void bootLoadInit(void){//引导程序初始化
+	forceUpdateMcu = 1;
+	forceUpdateLcd = 1;
 	SET_SPEAKER_OFF;//关闭蜂鸣器
 	SET_AIM_OFF;//关闭指示激光
 	SET_FAN_OFF;//打开激光器冷却风扇
@@ -452,7 +459,7 @@ void bootLoadProcess(void){//bootload 执行程序
 					}
 				}
 				else if(fileBuff[0] == 'U' && fileBuff[1] == '0' && fileBuff[2] == '3'){//U03 更新 应用&触摸屏
-					if(fileBuff[3] == DEVID_L && fileBuff[4] == DEVID_H){//设备匹配
+					if(fileBuff[3] == DEVID_L && fileBuff[4] == DEVID_H){//设备匹配				
 						printf("Bootloader:Start upgrade mcu application & lcd application!\n");
 						bootLoadState = BT_STATE_UPDATE_BOTH_APP;
 					}
@@ -465,6 +472,42 @@ void bootLoadProcess(void){//bootload 执行程序
 					if(fileBuff[3] == DEVID_L && fileBuff[4] == DEVID_H){//设备匹配
 						printf("Bootloader:Start update eprom!\n");
 						bootLoadState = BT_STATE_UPDATE_EPROM;
+					}
+					else{
+						printf("Bootloader:Device ID is not mate,run app!\n");
+						bootLoadState = BT_STATE_RUN_APP;
+					}
+				}	
+				else if(fileBuff[0] == 'U' && fileBuff[1] == '0' && fileBuff[2] == '5'){//U05 强制更新MCU
+					if(fileBuff[3] == DEVID_L && fileBuff[4] == DEVID_H){//设备匹配
+						printf("Bootloader:Start force update mcu!\n");
+						forceUpdateMcu = 1;
+						bootLoadState = BT_STATE_UPDATE_MCU_APP;
+					}
+					else{
+						printf("Bootloader:Device ID is not mate,run app!\n");
+						bootLoadState = BT_STATE_RUN_APP;
+					}
+				}
+				
+				else if(fileBuff[0] == 'U' && fileBuff[1] == '0' && fileBuff[2] == '6'){//U06 强制更新LCD
+					if(fileBuff[3] == DEVID_L && fileBuff[4] == DEVID_H){//设备匹配
+						printf("Bootloader:Start force update lcd!\n");
+						forceUpdateLcd = 1;
+						bootLoadState = BT_STATE_UPDATE_LCD_APP;
+					}
+					else{
+						printf("Bootloader:Device ID is not mate,run app!\n");
+						bootLoadState = BT_STATE_RUN_APP;
+					}
+				}
+
+				else if(fileBuff[0] == 'U' && fileBuff[1] == '0' && fileBuff[2] == '7'){//U07 强制更新MCU & LCD
+					if(fileBuff[3] == DEVID_L && fileBuff[4] == DEVID_H){//设备匹配
+						printf("Bootloader:Start force update mcu & lcd!\n");
+						forceUpdateMcu = 1;
+						forceUpdateLcd = 1;
+						bootLoadState = BT_STATE_UPDATE_BOTH_APP;
 					}
 					else{
 						printf("Bootloader:Device ID is not mate,run app!\n");
@@ -502,7 +545,7 @@ void bootLoadProcess(void){//bootload 执行程序
 			crcFlash = getOriginAppCrc();//计算FLASH中APP固件CRC32
 			crcUdisk = getNewMcuAppCrc();//计算U盘中MCU APP固件CRC32
 			printf("Bootloader:MCU crcFlash:%08XH,crcUdisk:%08XH!\n", crcFlash, crcUdisk);
-			if((crcUdisk == crcEpromMcu) && (crcFlash == crcEpromMcu)){//校验码相同跳过更新
+			if((crcUdisk == crcEpromMcu) && (crcFlash == crcEpromMcu) && (forceUpdateMcu == 0)){//校验码相同跳过更新
 				printf("Bootloader:Check mcu app crc same,skip!\n");
 				bootLoadState = BT_STATE_RESET;
 				break;
@@ -527,7 +570,7 @@ void bootLoadProcess(void){//bootload 执行程序
 			strcpy((char*)fileBuff, "/private");
 			crcLcdFile((char*)fileBuff);//扫描文件
 			printf("Bootloader:LCD crcLcd:%08XH,crcUdisk:%08XH!\n", crcEpromLcd, crcUdisk);
-			if(crcUdisk == crcEpromLcd){//校验码相同跳过更新
+			if((crcUdisk == crcEpromLcd) && (forceUpdateLcd == 0)){//校验码相同跳过更新
 				printf("Bootloader:Check lcd app crc same,skip!\n");
 				bootLoadState = BT_STATE_RUN_APP;
 				break;
@@ -554,7 +597,7 @@ void bootLoadProcess(void){//bootload 执行程序
 			crcFlash = getOriginAppCrc();//计算FLASH中APP固件CRC32
 			crcUdisk = getNewMcuAppCrc();//计算U盘中MCU APP固件CRC32
 			printf("Bootloader:MCU crcFlash:%08XH,crcUdisk:%08XH,crcEprom:%08XH\n", crcFlash, crcUdisk, crcEpromMcu);
-			if((crcUdisk == crcEpromMcu) && (crcFlash == crcEpromMcu)){//校验码相同跳过更新
+			if((crcUdisk == crcEpromMcu) && (crcFlash == crcEpromMcu) && (forceUpdateMcu == 0)){//校验码相同跳过更新
 				printf("Bootloader:Check mcu app crc same,skip!\n");
 			}
 			else{//从U盘更新固件
@@ -576,7 +619,7 @@ void bootLoadProcess(void){//bootload 执行程序
 			strcpy((char*)fileBuff, "/private");
 			crcLcdFile((char*)fileBuff);//扫描文件
 			printf("Bootloader:LCD crcLcd:%08XH,crcUdisk:%08XH!\n", crcEpromLcd, crcUdisk);
-			if(crcUdisk == crcEpromLcd){//校验码相同跳过更新
+			if(crcUdisk == crcEpromLcd && (forceUpdateLcd == 0)){//校验码相同跳过更新
 				printf("Bootloader:Check lcd app crc same,skip!\n");
 				bootLoadState = BT_STATE_RUN_APP;
 				break;
@@ -597,7 +640,7 @@ void bootLoadProcess(void){//bootload 执行程序
 			HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);HAL_Delay(5000);
 			bootLoadState = BT_STATE_RESET;//更新APP
 			break;
-		}
+		}		
 		case BT_STATE_UPDATE_EPROM:{//更新EPROM
 			updateEprom();
 			break;
@@ -1207,6 +1250,13 @@ static void SystemClock_Reset(void){//复位系统时钟
 }
 void resetInit(void){//复位后初始化
 	HAL_DeInit();
+	HAL_TIM_Base_MspDeInit(&htim2);
+	HAL_TIM_Base_MspDeInit(&htim10);
+	HAL_TIM_Base_MspDeInit(&htim14);	
+	HAL_I2C_MspDeInit(&hi2c1);
+	HAL_UART_MspDeInit(&huart1);
+	HAL_UART_MspDeInit(&huart4);
+	USBH_DeInit(&hUsbHostFS);
 	//复位RCC时钟
 	SystemClock_Reset();
 	UsbGpioReset();
@@ -1537,6 +1587,7 @@ static FRESULT crcLcdFile(char* scanPath){//扫描文件夹内全部文件并计算CRC值
 			crcUdisk += getNewLcdAppCrc(fileName);//计算U盘中MCU APP固件CRC32
 		}		
 	}
+	f_closedir(srcdir);
 	return retUsbH;
 }	
 
@@ -1563,7 +1614,7 @@ static FRESULT updateLcdFile(char* scanPath){//扫描文件夹内全部文件并上传
 		memset(fileName, 0x0, sizeof(fileName));
 		sprintf(fileName, "%s%c%s",scanPath , '/', fn);
 		if(finfo->fattrib & AM_DIR){//文件夹
-			retUsbH = crcLcdFile(fileName);
+			retUsbH = updateLcdFile(fileName);
 			if(retUsbH != FR_OK){
 				return retUsbH;
 			}
@@ -1573,6 +1624,7 @@ static FRESULT updateLcdFile(char* scanPath){//扫描文件夹内全部文件并上传
 			crcUdisk += updateLcdApp(fileName);//计算U盘中MCU APP固件CRC32
 		}		
 	}
+	f_closedir(srcdir);
 	return retUsbH;
 }
 
