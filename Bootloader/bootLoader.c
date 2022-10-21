@@ -148,7 +148,7 @@ static __IO uint32_t LastPGAddress = APPLICATION_FLASH_START_ADDRESS;
 uint8_t RAM_Buf[BUFFER_SIZE] = {0x00};//文件读写缓冲
 /*****************************************************************************/
 const char BootLoadMainVer __attribute__((at(BOOTLOAD_MAIN_ADDRESS)))   		= '1';
-const char BootLoadMinorVer __attribute__((at(BOOTLAOD_MINOR_ADDRESS)))  		= '3';
+const char BootLoadMinorVer __attribute__((at(BOOTLAOD_MINOR_ADDRESS)))  		= '4';
 /*****************************************************************************/
 uint8_t cmdShakeHandOp[] = {0xEE,0x04,0xFF,0xFC,0xFF,0xFF};
 uint8_t cmdShakeHandRespondOp[] = {0xEE,0x55,0xFF,0xFC,0xFF,0xFF};
@@ -228,8 +228,8 @@ static uint8_t cmpByte(uint8_t *psrc, uint8_t *pdist, uint16_t len){
 }
 
 void bootLoadInit(void){//引导程序初始化
-	forceUpdateMcu = 1;
-	forceUpdateLcd = 1;
+	forceUpdateMcu = 0;
+	forceUpdateLcd = 0;
 	SET_SPEAKER_OFF;//关闭蜂鸣器
 	SET_AIM_OFF;//关闭指示激光
 	SET_FAN_OFF;//打开激光器冷却风扇
@@ -547,11 +547,12 @@ void bootLoadProcess(void){//bootload 执行程序
 			printf("Bootloader:MCU crcFlash:%08XH,crcUdisk:%08XH!\n", crcFlash, crcUdisk);
 			if((crcUdisk == crcEpromMcu) && (crcFlash == crcEpromMcu) && (forceUpdateMcu == 0)){//校验码相同跳过更新
 				printf("Bootloader:Check mcu app crc same,skip!\n");
-				bootLoadState = BT_STATE_RESET;
+				bootLoadState = BT_STATE_RUN_APP;
 				break;
 			}
-			crcUdisk = updateMcuApp();//写入MCU FLASH
+			crcUdisk = updateMcuApp();//写入UDISK FILE
 			crcFlash = getOriginAppCrc();//校验MCU FLASH
+			crcEpromMcu = crcFlash;//CRC值写入EPROM
 			if(crcUdisk != crcFlash){
 				bootLoadFailHandler(BT_FAIL_CHECKSUM_MCU_APP_FLASH);
 			}
@@ -560,7 +561,7 @@ void bootLoadProcess(void){//bootload 执行程序
 				clearEprom(CLEAR_EPROM_NVRAM);//清除NVRAM掉电储存区
 				clearEprom(CLEAR_EPROM_MCU_FIRMWARE_CRC);
 				epromWriteDword(CONFIG_EPROM_MCU_FW_CRC, &crcEpromMcu);
-				printf("Bootloader:Update new crc32 sucess,0x08%XH\n", crcEpromMcu);
+				printf("Bootloader:Update new crc32 sucess,0x08%XH\n", crcFlash);
 			}
 			bootLoadState = BT_STATE_RESET;//更新APP
 			break;
