@@ -118,8 +118,8 @@
 #define GDDC_TX_TIMEOUT													0xFFFF
 #define GDDC_RETRY_TIMES												10//发送重试次数
 /*****************************************************************************/
-#define BOOTLOAD_MAIN_ADDRESS										0x0800FE00UL
-#define BOOTLAOD_MINOR_ADDRESS									0x0800FE01UL
+//#define BOOTLOAD_MAIN_ADDRESS										0x0800FE00UL
+//#define BOOTLAOD_MINOR_ADDRESS									0x0800FE01UL
 /*****************************************************************************/
 typedef enum {
 	CLEAR_EPROM_ALL 														= 0x01,
@@ -335,7 +335,7 @@ void bootLoadProcess(void){//bootload 执行程序
 	uint8_t fileBuff[256];
 	uint32_t brByte;//实际读取的字节数
 	crcFlash = 0;
-	crcUdisk = 0;;
+	crcUdisk = 0;
 	switch(bootLoadState){
 		case BT_STATE_IDLE:{//开机等待U盘识别     
 			SET_AIM_OFF;

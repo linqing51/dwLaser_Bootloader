@@ -1,4 +1,7 @@
 #MicroXplorer Configuration settings - do not modify
+CAD.formats=
+CAD.pinconfig=
+CAD.provider=
 FATFS.IPParameters=_USE_MUTEX,_USE_FIND,_USE_EXPAND,_USE_CHMOD,_USE_LABEL,_USE_FORWARD,_CODE_PAGE,_USE_LFN,_LFN_UNICODE,_USE_TRIM,_FS_EXFAT,_USE_STRFUNC,_USE_MKFS,_USE_FASTSEEK,_STRF_ENCODE,_FS_LOCK
 FATFS._CODE_PAGE=437
 FATFS._FS_EXFAT=0
@@ -98,8 +101,8 @@ Mcu.PinsNb=53
 Mcu.ThirdPartyNb=0
 Mcu.UserConstants=
 Mcu.UserName=STM32F405RGTx
-MxCube.Version=6.6.1
-MxDb.Version=DB.6.0.60
+MxCube.Version=6.8.0
+MxDb.Version=DB.6.0.80
 NVIC.BusFault_IRQn=true\:0\:0\:false\:false\:true\:false\:false\:false
 NVIC.DebugMonitor_IRQn=true\:0\:0\:false\:false\:true\:false\:false\:false
 NVIC.ForceEnableDMAVector=true
@@ -354,6 +357,7 @@ ProjectManager.PreviousToolchain=
 ProjectManager.ProjectBuild=false
 ProjectManager.ProjectFileName=dwLaser_Bootloader.ioc
 ProjectManager.ProjectName=dwLaser_Bootloader
+ProjectManager.ProjectStructure=
 ProjectManager.RegisterCallBack=
 ProjectManager.StackSize=0x2000
 ProjectManager.TargetToolchain=MDK-ARM V5.32
