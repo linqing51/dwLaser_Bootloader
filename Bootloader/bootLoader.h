@@ -22,8 +22,6 @@
 /*****************************************************************************/
 #include "..\..\dwLaser_Application\MCU_Application\sPlc\sPlcConfig.h"
 /*****************************************************************************/
-extern uint8_t usbReady;//USB DISK¾ÍÐ÷
-/*****************************************************************************/
 void resetInit(void);
 void bootLoadInit(void);
 void bootLoadProcess(void);

@@ -147,8 +147,8 @@ uint32_t RamAddress = 0x00;
 static __IO uint32_t LastPGAddress = APPLICATION_FLASH_START_ADDRESS;
 uint8_t RAM_Buf[BUFFER_SIZE] = {0x00};//文件读写缓冲
 /*****************************************************************************/
-const char BootLoadMainVer __attribute__((at(BOOTLOAD_MAIN_ADDRESS)))   		= '1';
-const char BootLoadMinorVer __attribute__((at(BOOTLAOD_MINOR_ADDRESS)))  		= '4';
+const char BootLoadMainVer __attribute__((at(BOOTLOAD_MAIN_ADDRESS)))   			= '1';
+const char BootLoadMinorVer __attribute__((at(BOOTLAOD_MINOR_ADDRESS)))  		= '5';
 /*****************************************************************************/
 uint8_t cmdShakeHandOp[] = {0xEE,0x04,0xFF,0xFC,0xFF,0xFF};
 uint8_t cmdShakeHandRespondOp[] = {0xEE,0x55,0xFF,0xFC,0xFF,0xFF};
@@ -179,7 +179,6 @@ FILINFO FileInfo;//FATFS 文件信息
 /*****************************************************************************/
 static uint8_t bootLoadState;
 static uint8_t forceUpdateMcu, forceUpdateLcd;
-static uint8_t usbReady;//USB DISK就绪
 static uint32_t crcFlash, crcUdisk;
 int32_t releaseTime0, releaseTime1, overTime, releaseCounter;
 uint32_t JumpAddress;
@@ -256,7 +255,7 @@ void bootLoadInit(void){//引导程序初始化
 	SET_GREEN_LED_ON;
 	SET_BLUE_LED_OFF;
 	HAL_Delay(500);
-	//Y
+	//B
 	SET_RED_LED_OFF;
 	SET_GREEN_LED_OFF;
 	SET_BLUE_LED_ON;
@@ -268,7 +267,6 @@ void bootLoadInit(void){//引导程序初始化
 	overTime = HAL_GetTick() + CONFIG_JUMP_DELAY;
 	releaseTime0 = 0;
 	releaseTime1 = 0;
-	usbReady = FALSE;
 	bootLoadState = BT_STATE_IDLE; 
 	printf("\r\n");
 	printf("\r\n");
@@ -414,10 +412,7 @@ void bootLoadProcess(void){//bootload 执行程序
 				printf("Bootloader:Wait usb disk init:%d Second!\n", releaseTime0);
 				releaseTime1 = releaseTime0;
 			} 
-			if(releaseTime0 <= 0){
-				bootLoadState = BT_STATE_READ_CFG;
-			}
-			else if(releaseTime0 <=2 && usbReady == TRUE){//U盘就绪
+			if(releaseTime0 <= 1){
 				bootLoadState = BT_STATE_READ_CFG;
 			}
 			break;
