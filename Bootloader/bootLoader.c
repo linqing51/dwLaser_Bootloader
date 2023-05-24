@@ -7,18 +7,6 @@
 /*****************************************************************************/
 #pragma import(__use_no_semihosting_swi)
 /*****************************************************************************/
-#define SET_EDAC0_CS(b)													HAL_GPIO_WritePin(EDAC0_CS_GPIO_Port, EDAC0_CS_Pin, b)
-#define SET_EDAC1_CS(b)													HAL_GPIO_WritePin(EDAC1_CS_GPIO_Port, EDAC1_CS_Pin, b)
-#define SET_EDAC2_CS(b)													HAL_GPIO_WritePin(EDAC2_CS_GPIO_Port, EDAC2_CS_Pin, b)
-#define SET_EDAC3_CS(b)													HAL_GPIO_WritePin(EDAC3_CS_GPIO_Port, EDAC3_CS_Pin, b)
-#define SET_EDAC0_SCK(b)												HAL_GPIO_WritePin(EDAC0_SCK_GPIO_Port, EDAC0_SCK_Pin, b)
-#define SET_EDAC1_SCK(b)												HAL_GPIO_WritePin(EDAC1_SCK_GPIO_Port, EDAC1_SCK_Pin, b)
-#define SET_EDAC2_SCK(b)												HAL_GPIO_WritePin(EDAC2_SCK_GPIO_Port, EDAC2_SCK_Pin, b)
-#define SET_EDAC3_SCK(b)												HAL_GPIO_WritePin(EDAC3_SCK_GPIO_Port, EDAC3_SCK_Pin, b)
-#define SET_EDAC0_SDI(b)												HAL_GPIO_WritePin(EDAC0_SDI_GPIO_Port, EDAC0_SDI_Pin, b)
-#define SET_EDAC1_SDI(b)												HAL_GPIO_WritePin(EDAC1_SDI_GPIO_Port, EDAC1_SDI_Pin, b)
-#define SET_EDAC2_SDI(b)												HAL_GPIO_WritePin(EDAC2_SDI_GPIO_Port, EDAC2_SDI_Pin, b)
-#define SET_EDAC3_SDI(b)												HAL_GPIO_WritePin(EDAC3_SDI_GPIO_Port, EDAC3_SDI_Pin, b)
 #define GET_ESTOP_NC														HAL_GPIO_ReadPin(ESTOP_NC_GPIO_Port, ESTOP_NC_Pin)
 #define GET_INTERLOCK_NC												HAL_GPIO_ReadPin(INTERLOCK_NC_GPIO_Port, INTERLOCK_NC_Pin)
 #define GET_FSWITCH_NO													HAL_GPIO_ReadPin(FS_NO_GPIO_Port, FS_NO_Pin)
@@ -32,42 +20,48 @@
 #define SET_GREEN_LED_OFF												HAL_GPIO_WritePin(GREEN_LED_PWM_GPIO_Port, GREEN_LED_PWM_Pin, GPIO_PIN_RESET)
 #define FLIP_GREEN_LED  												HAL_GPIO_TogglePin(GREEN_LED_PWM_GPIO_Port, GREEN_LED_PWM_Pin)
 
-#define SET_BLUE_LED_ON													HAL_GPIO_WritePin(BLUE_LED_PWM_GPIO_Port, BLUE_LED_PWM_Pin, GPIO_PIN_SET)
+#define SET_BLUE_LED_ON												HAL_GPIO_WritePin(BLUE_LED_PWM_GPIO_Port, BLUE_LED_PWM_Pin, GPIO_PIN_SET)
 #define SET_BLUE_LED_OFF												HAL_GPIO_WritePin(BLUE_LED_PWM_GPIO_Port, BLUE_LED_PWM_Pin, GPIO_PIN_RESET)
-#define FLIP_BLUE_LED  													HAL_GPIO_TogglePin(BLUE_LED_PWM_GPIO_Port, BLUE_LED_PWM_Pin)
+#define FLIP_BLUE_LED  												HAL_GPIO_TogglePin(BLUE_LED_PWM_GPIO_Port, BLUE_LED_PWM_Pin)
 
-#define SET_ERR_LED_ON													HAL_GPIO_WritePin(ERR_LED_GPIO_Port, ERR_LED_Pin, GPIO_PIN_SET)
-#define SET_ERR_LED_OFF													HAL_GPIO_WritePin(ERR_LED_GPIO_Port, ERR_LED_Pin, GPIO_PIN_RESET)
-#define GET_ERR_LED															HAL_GPIO_ReadPin(ERR_LED_GPIO_Port, ERR_LED_Pin)
-#define FLIP_ERR_LED														HAL_GPIO_TogglePin(ERR_LED_GPIO_Port, ERR_LED_Pin)
-#define SET_TICK_LED_ON													HAL_GPIO_WritePin(TICK_LED_GPIO_Port, TICK_LED_Pin, GPIO_PIN_SET)
-#define SET_TICK_LED_OFF												HAL_GPIO_WritePin(TICK_LED_GPIO_Port, TICK_LED_Pin, GPIO_PIN_RESET)
-#define GET_TICK_LED														HAL_GPIO_ReadPin(TICK_LED_GPIO_Port, TICK_LED_Pin)
-#define FLIP_TICK_LED														HAL_GPIO_TogglePin(TICK_LED_GPIO_Port, TICK_LED_Pin)
-#define SET_LASER_CH0_ON												HAL_GPIO_WritePin(LAS_PWM0_GPIO_Port, LAS_PWM0_Pin, GPIO_PIN_SET)
-#define SET_LASER_CH0_OFF												HAL_GPIO_WritePin(LAS_PWM0_GPIO_Port, LAS_PWM0_Pin, GPIO_PIN_RESET)
-#define SET_LASER_CH1_ON												HAL_GPIO_WritePin(LAS_PWM1_GPIO_Port, LAS_PWM1_Pin, GPIO_PIN_SET)
-#define SET_LASER_CH1_OFF												HAL_GPIO_WritePin(LAS_PWM1_GPIO_Port, LAS_PWM1_Pin, GPIO_PIN_RESET)
-#define SET_LASER_CH2_ON												HAL_GPIO_WritePin(LAS_PWM2_GPIO_Port, LAS_PWM2_Pin, GPIO_PIN_SET)
-#define SET_LASER_CH2_OFF												HAL_GPIO_WritePin(LAS_PWM2_GPIO_Port, LAS_PWM2_Pin, GPIO_PIN_RESET)
-#define SET_LASER_CH3_ON												HAL_GPIO_WritePin(LAS_PWM3_GPIO_Port, LAS_PWM3_Pin, GPIO_PIN_SET)
-#define SET_LASER_CH3_OFF												HAL_GPIO_WritePin(LAS_PWM3_GPIO_Port, LAS_PWM3_Pin, GPIO_PIN_RESET)
-#define FLIP_LASER_CH0													HAL_GPIO_TogglePin(LAS_PWM0_GPIO_Port, LAS_PWM0_Pin)
-#define FLIP_LASER_CH1													HAL_GPIO_TogglePin(LAS_PWM1_GPIO_Port, LAS_PWM1_Pin)
-#define FLIP_LASER_CH2													HAL_GPIO_TogglePin(LAS_PWM2_GPIO_Port, LAS_PWM2_Pin)
-#define FLIP_LASER_CH3													HAL_GPIO_TogglePin(LAS_PWM3_GPIO_Port, LAS_PWM3_Pin)
-#define GET_LASER_CH0														HAL_GPIO_ReadPin(LAS_PWM0_GPIO_Port, LAS_PWM0_Pin)
-#define GET_LASER_CH1														HAL_GPIO_ReadPin(LAS_PWM1_GPIO_Port, LAS_PWM1_Pin)
-#define GET_LASER_CH2														HAL_GPIO_ReadPin(LAS_PWM2_GPIO_Port, LAS_PWM2_Pin)
-#define GET_LASER_CH3														HAL_GPIO_ReadPin(LAS_PWM3_GPIO_Port, LAS_PWM3_Pin)
-#define SET_SPEAKER_ON													HAL_GPIO_WritePin(SPK_EN_GPIO_Port, SPK_EN_Pin, GPIO_PIN_RESET)
-#define SET_SPEAKER_OFF													HAL_GPIO_WritePin(SPK_EN_GPIO_Port, SPK_EN_Pin, GPIO_PIN_SET)
-#define SET_AIM_ON										   				HAL_GPIO_WritePin(LAS_AIM_GPIO_Port, LAS_AIM_Pin, GPIO_PIN_SET)
-#define SET_AIM_OFF															HAL_GPIO_WritePin(LAS_AIM_GPIO_Port, LAS_AIM_Pin, GPIO_PIN_RESET)
-#define SET_FAN_ON															HAL_GPIO_WritePin(LAS_FAN_GPIO_Port, LAS_FAN_Pin, GPIO_PIN_SET)
-#define SET_FAN_OFF															HAL_GPIO_WritePin(LAS_FAN_GPIO_Port, LAS_FAN_Pin, GPIO_PIN_RESET)
-#define SET_TEC_ON															HAL_GPIO_WritePin(LAS_TEC_GPIO_Port, LAS_TEC_Pin, GPIO_PIN_SET)
-#define SET_TEC_OFF															HAL_GPIO_WritePin(LAS_TEC_GPIO_Port, LAS_TEC_Pin, GPIO_PIN_RESET)
+#define SET_DBG_LED_ON													HAL_GPIO_WritePin(DBG_LED_GPIO_Port, DBG_LED_Pin, GPIO_PIN_SET)
+#define SET_DBG_LED_OFF												HAL_GPIO_WritePin(DBG_LED_GPIO_Port, DBG_LED_Pin, GPIO_PIN_RESET)
+#define GET_DBG_LED														HAL_GPIO_ReadPin(DBG_LED_GPIO_Port, DBG_LED_Pin)
+#define FLIP_DBG_LED														HAL_GPIO_TogglePin(DBG_LED_GPIO_Port, DBG_LED_Pin)
+
+#define SET_LASER_1470_ON											HAL_GPIO_WritePin(LP_PWM0_GPIO_Port, LP_PWM0_Pin, GPIO_PIN_SET)
+#define SET_LASER_1470_OFF											HAL_GPIO_WritePin(LP_PWM0_GPIO_Port, LP_PWM0_Pin, GPIO_PIN_RESET)
+#define FLIP_LASER_1470												HAL_GPIO_TogglePin(LP_PWM0_GPIO_Port, LP_PWM0_Pin)
+
+#define SET_LASER_980_ON												HAL_GPIO_WritePin(LP_PWM1_GPIO_Port, LP_PWM1_Pin, GPIO_PIN_SET)
+#define SET_LASER_980_OFF											HAL_GPIO_WritePin(LP_PWM1_GPIO_Port, LP_PWM1_Pin, GPIO_PIN_RESET)
+#define FLIP_LASER_980													HAL_GPIO_TogglePin(LP_PWM1_GPIO_Port, LP_PWM1_Pin)
+
+#define SET_LASER_635_ON												HAL_GPIO_WritePin(G5_AIM_PWM_GPIO_Port, G5_AIM_PWM_Pin, GPIO_PIN_SET)
+#define SET_LASER_635_OFF											HAL_GPIO_WritePin(G5_AIM_PWM_GPIO_Port, G5_AIM_PWM_Pin, GPIO_PIN_RESET)
+#define FLIP_LASER_635													HAL_GPIO_TogglePin(G5_AIM_PWM_GPIO_Port, G5_AIM_PWM_Pin)
+
+#define GET_LASER_1470													HAL_GPIO_ReadPin(LP_PWM0_GPIO_Port, LP_PWM0_Pin)
+#define GET_LASER_980													HAL_GPIO_ReadPin(LP_PWM1_GPIO_Port, LP_PWM1_Pin)
+#define GET_LASER_635													HAL_GPIO_ReadPin(G5_AIM_PWM_GPIO_Port, G5_AIM_PWM_Pin)
+
+#define SET_SPEAKER_ON													HAL_GPIO_WritePin(SPK_TIMER_GPIO_Port, SPK_TIMER_Pin, GPIO_PIN_RESET)
+#define SET_SPEAKER_OFF												HAL_GPIO_WritePin(SPK_TIMER_GPIO_Port, SPK_TIMER_Pin, GPIO_PIN_SET)
+
+#define SET_M4_AIM_ON													HAL_GPIO_WritePin(M4_PIC_GPIO_Port, M4_PIC_Pin, GPIO_PIN_SET)
+#define SET_M4_AIM_OFF													HAL_GPIO_WritePin(M4_PIC_GPIO_Port, M4_PIC_Pin, GPIO_PIN_SET)
+
+#define SET_FAN_ENA_ON													HAL_GPIO_WritePin(FAN_ENA_GPIO_Port, FAN_ENA_Pin, GPIO_PIN_SET)
+#define SET_FAN_ENA_OFF												HAL_GPIO_WritePin(FAN_ENA_GPIO_Port, FAN_ENA_Pin, GPIO_PIN_RESET)
+
+#define SET_FAN_PWM_ON													HAL_GPIO_WritePin(FAN_PWM_GPIO_Port, FAN_PWM_Pin, GPIO_PIN_RESET)
+#define SET_FAN_PWM_OFF												HAL_GPIO_WritePin(FAN_PWM_GPIO_Port, FAN_PWM_Pin, GPIO_PIN_SET)
+
+#define SET_TP_PWM_ON													HAL_GPIO_WritePin(TP_PWM_GPIO_Port, TP_PWM_Pin, GPIO_PIN_SET)
+#define SET_TP_PWM_OFF													HAL_GPIO_WritePin(TP_PWM_GPIO_Port, TP_PWM_Pin, GPIO_PIN_RESET)
+
+#define SET_TP_COOL															HAL_GPIO_WritePin(TP_DIR_GPIO_Port, TP_DIR_Pin, GPIO_PIN_RESET)
+#define SET_TP_HOT																HAL_GPIO_WritePin(TP_DIR_GPIO_Port, TP_DIR_Pin, GPIO_PIN_RESET)
 /*****************************************************************************/
 #define BT_STATE_IDLE														0//¿ÕÏÐ
 #define BT_STATE_LOAD_FWINFO										1//EPROMÔØÈë¹Ì¼þÐÅÏ¢
@@ -118,9 +112,6 @@
 #define GDDC_TX_TIMEOUT													0xFFFF
 #define GDDC_RETRY_TIMES												10//·¢ËÍÖØÊÔ´ÎÊý
 /*****************************************************************************/
-#define BOOTLOAD_MAIN_ADDRESS										0x0800FE00UL
-#define BOOTLAOD_MINOR_ADDRESS									0x0800FE01UL
-/*****************************************************************************/
 typedef enum {
 	CLEAR_EPROM_ALL 														= 0x01,
 	CLEAR_EPROM_NVRAM														= 0x02,
@@ -138,7 +129,7 @@ extern TIM_HandleTypeDef htim7;//DAC DMA ¼ÆÊ±Æ÷
 extern TIM_HandleTypeDef htim10;//Laser Timer
 extern TIM_HandleTypeDef htim12;//FAN PWM
 extern TIM_HandleTypeDef htim14;//sPlc Timer
-extern I2C_HandleTypeDef hi2c1;
+extern I2C_HandleTypeDef hi2c2;
 extern USBH_HandleTypeDef hUsbHostFS;
 /*****************************************************************************/
 uint32_t crcEpromMcu, crcEpromLcd;//EPROMÖÐ´¢´æµÄCRC¼ÇÂ¼Öµ
@@ -231,20 +222,20 @@ void bootLoadInit(void){//Òýµ¼³ÌÐò³õÊ¼»¯
 	forceUpdateMcu = 0;
 	forceUpdateLcd = 0;
 	SET_SPEAKER_OFF;//¹Ø±Õ·äÃùÆ÷
-	SET_AIM_OFF;//¹Ø±ÕÖ¸Ê¾¼¤¹â
-	SET_FAN_OFF;//´ò¿ª¼¤¹âÆ÷ÀäÈ´·çÉÈ
-	SET_TEC_OFF;//¹Ø±ÕÖÆÀä
+	SET_FAN_PWM_OFF;//´ò¿ª¼¤¹âÆ÷ÀäÈ´·çÉÈ
+	SET_FAN_ENA_OFF;
+	SET_TP_PWM_OFF;
+	SET_TP_COOL;
 	//¹Ø±ÕËùÓÐ¼¤¹â
-	SET_LASER_CH0_OFF;
-	SET_LASER_CH1_OFF;
-	SET_LASER_CH2_OFF;
-	SET_LASER_CH3_OFF;
+	SET_LASER_1470_OFF;
+	SET_LASER_980_OFF;
+	SET_LASER_635_OFF;
+	SET_M4_AIM_OFF;
 	//¹Ø±ÕËùÓÐLED
 	SET_RED_LED_OFF;
 	SET_GREEN_LED_OFF;
 	SET_BLUE_LED_OFF;
-	SET_TICK_LED_OFF;
-	SET_ERR_LED_OFF;
+	SET_DBG_LED_OFF;
 	//R-G-YÁ÷Ë®
 	//R
 	SET_RED_LED_ON;
@@ -299,29 +290,23 @@ void bootLoadInit(void){//Òýµ¼³ÌÐò³õÊ¼»¯
 		printf("Bootloader:INPUT->INTERLOCK     = Close!\n");
 	}
 	//ÏÔÊ¾Êä³öIO×´Ì¬
-	if(GET_LASER_CH0 == GPIO_PIN_SET){//LPA_PWM0
+	if(GET_LASER_1470 == GPIO_PIN_SET){//LPA_PWM0
 		printf("Bootloader:OUTPUT->LAS_PWM0     = High!\n");
 	}
 	else{
 		printf("Bootloader:OUTPUT->LAS_PWM0     = Low!\n");
 	}
-	if(GET_LASER_CH1 == GPIO_PIN_SET){//LPA_PWM1
+	if(GET_LASER_980== GPIO_PIN_SET){//LPA_PWM1
 		printf("Bootloader:OUTPUT->LAS_PWM1     = High!\n");
 	}
 	else{
 		printf("Bootloader:OUTPUT->LAS_PWM1     = Low!\n");
 	}
-	if(GET_LASER_CH2 == GPIO_PIN_SET){//LPB_PWM2
+	if(GET_LASER_635 == GPIO_PIN_SET){//LPB_PWM2
 		printf("Bootloader:OUTPUT->LAS_PWM2     = High!\n");
 	}
 	else{
 		printf("Bootloader:OUTPUT->LAS_PWM2     = Low!\n");
-	}
-	if(GET_LASER_CH3 == GPIO_PIN_SET){//LPB_PWM3
-		printf("Bootloader:OUTPUT->LAS_PWM3     = High!\n");
-	}
-	else{
-		printf("Bootloader:OUTPUT->LAS_PWM3     = Low!\n");
 	}
 	
 	printf("Bootloader:OUTPUT->AIM_PWM				= OFF!\n");
@@ -338,8 +323,9 @@ void bootLoadProcess(void){//bootload Ö´ÐÐ³ÌÐò
 	crcUdisk = 0;;
 	switch(bootLoadState){
 		case BT_STATE_IDLE:{//¿ª»úµÈ´ýUÅÌÊ¶±ð     
-			SET_AIM_OFF;
-			SET_FAN_OFF;		
+			SET_LASER_635_OFF;
+			SET_FAN_PWM_OFF;
+			SET_M4_AIM_OFF;
 			SET_RED_LED_OFF;
 			SET_GREEN_LED_OFF;
 			SET_BLUE_LED_OFF;
@@ -372,7 +358,8 @@ void bootLoadProcess(void){//bootload Ö´ÐÐ³ÌÐò
 			if(	(GET_INTERLOCK_NC == GPIO_PIN_SET) &&//°²È«Á¬ËøÎ´²åÈë
 				(GET_FSWITCH_NC == GPIO_PIN_RESET) &&//½ÅÌ¤²åÈë
 				(GET_FSWITCH_NO == GPIO_PIN_RESET)){//½ÅÌ¤²ÈÏÂ		
-				SET_FAN_ON;
+				SET_FAN_PWM_ON;//´ò¿ª¼¤¹âÆ÷ÀäÈ´·çÉÈ
+				SET_FAN_ENA_ON;
 				SET_RED_LED_ON;
 				SET_GREEN_LED_OFF;
 				SET_BLUE_LED_OFF;	
@@ -678,7 +665,8 @@ void bootLoadProcess(void){//bootload Ö´ÐÐ³ÌÐò
 				SET_RED_LED_OFF;
 				SET_GREEN_LED_OFF;
 				SET_BLUE_LED_OFF;
-				SET_FAN_OFF;
+				SET_FAN_PWM_OFF;//´ò¿ª¼¤¹âÆ÷ÀäÈ´·çÉÈ
+				SET_FAN_ENA_OFF;
 				__disable_irq();
 				SysTick->CTRL = 0;//¹Ø¼ü´úÂë
 				//¹Ø±ÕÖÐ¶Ï                                    				
@@ -1254,7 +1242,7 @@ void resetInit(void){//¸´Î»ºó³õÊ¼»¯
 	HAL_TIM_Base_MspDeInit(&htim2);
 	HAL_TIM_Base_MspDeInit(&htim10);
 	HAL_TIM_Base_MspDeInit(&htim14);	
-	HAL_I2C_MspDeInit(&hi2c1);
+	HAL_I2C_MspDeInit(&hi2c2);
 	HAL_UART_MspDeInit(&huart1);
 	HAL_UART_MspDeInit(&huart4);
 	USBH_DeInit(&hUsbHostFS);
@@ -1272,7 +1260,7 @@ static HAL_StatusTypeDef epromReadByte(uint16_t ReadAddr, uint8_t *rdat){//ÔÚÖ¸¶
 		ret = HAL_ERROR;
 		return ret;
 	}	
-	ret = HAL_I2C_Mem_Read(&hi2c1,
+	ret = HAL_I2C_Mem_Read(&hi2c2,
 	                       CONFIG_EPROM_READ_ADDR,
 	                       ReadAddr,
 	                       I2C_MEMADD_SIZE_16BIT,
@@ -1280,8 +1268,8 @@ static HAL_StatusTypeDef epromReadByte(uint16_t ReadAddr, uint8_t *rdat){//ÔÚÖ¸¶
 	                       1,
 	                       CONFIG_EPROM_TIMEOUT);
 	if(ret != HAL_OK){
-		ret = HAL_I2C_DeInit(&hi2c1);//ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
-		ret = HAL_I2C_Init(&hi2c1);//Õâ¾äÖØÐÂ³õÊ¼»¯I2C¿ØÖÆÆ÷
+		ret = HAL_I2C_DeInit(&hi2c2);//ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
+		ret = HAL_I2C_Init(&hi2c2);//Õâ¾äÖØÐÂ³õÊ¼»¯I2C¿ØÖÆÆ÷
 	}
 	return ret;
 }
@@ -1294,7 +1282,7 @@ static HAL_StatusTypeDef epromReadHword(uint16_t ReadAddr, uint16_t *rdat){//ÔÚÖ
 		ret = HAL_ERROR;
 		return ret;
 	}	
-	ret = HAL_I2C_Mem_Read(&hi2c1, 
+	ret = HAL_I2C_Mem_Read(&hi2c2, 
 						   CONFIG_EPROM_READ_ADDR,
 	                       ReadAddr,
 	                       I2C_MEMADD_SIZE_16BIT,
@@ -1302,8 +1290,8 @@ static HAL_StatusTypeDef epromReadHword(uint16_t ReadAddr, uint16_t *rdat){//ÔÚÖ
 	                       2,
 	                       CONFIG_EPROM_TIMEOUT);
 	if(ret != HAL_OK){
-		ret = HAL_I2C_DeInit(&hi2c1);        //ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
-		ret = HAL_I2C_Init(&hi2c1);          //Õâ¾äÖØÐÂ³õÊ¼»¯I2C¿ØÖÆÆ÷
+		ret = HAL_I2C_DeInit(&hi2c2);        //ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
+		ret = HAL_I2C_Init(&hi2c2);          //Õâ¾äÖØÐÂ³õÊ¼»¯I2C¿ØÖÆÆ÷
 	}
 	return ret;
 }
@@ -1316,7 +1304,7 @@ static HAL_StatusTypeDef epromReadDword(uint16_t ReadAddr, uint32_t *rdat){////Ô
 		ret = HAL_ERROR;
 		return ret;
 	}	
-	ret = HAL_I2C_Mem_Read(&hi2c1, 
+	ret = HAL_I2C_Mem_Read(&hi2c2, 
 	                       CONFIG_EPROM_READ_ADDR,
 	                       ReadAddr,
 	                       I2C_MEMADD_SIZE_16BIT,
@@ -1324,8 +1312,8 @@ static HAL_StatusTypeDef epromReadDword(uint16_t ReadAddr, uint32_t *rdat){////Ô
 	                       4,
 	                       CONFIG_EPROM_TIMEOUT);
 	if(ret != HAL_OK){
-		ret = HAL_I2C_DeInit(&hi2c1);        //ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
-		ret = HAL_I2C_Init(&hi2c1);          //Õâ¾äÖØÐÂ³õÊ¼»¯I2C¿ØÖÆÆ÷
+		ret = HAL_I2C_DeInit(&hi2c2);        //ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
+		ret = HAL_I2C_Init(&hi2c2);          //Õâ¾äÖØÐÂ³õÊ¼»¯I2C¿ØÖÆÆ÷
 	}
 	return ret;
 }
@@ -1337,7 +1325,7 @@ static HAL_StatusTypeDef epromWriteByte(uint16_t WriteAddr, uint8_t *wdat){//ÔÚÖ
 		ret = HAL_ERROR;
 		return ret;
 	}
-	ret = HAL_I2C_Mem_Write(&hi2c1, 
+	ret = HAL_I2C_Mem_Write(&hi2c2, 
 	                        CONFIG_EPROM_WRITE_ADDR,
 	                        WriteAddr, 
 	                        I2C_MEMADD_SIZE_16BIT, 
@@ -1345,8 +1333,8 @@ static HAL_StatusTypeDef epromWriteByte(uint16_t WriteAddr, uint8_t *wdat){//ÔÚÖ
 	                        1, 
 	                        CONFIG_EPROM_TIMEOUT);
 	if(ret != HAL_OK){
-		ret = HAL_I2C_DeInit(&hi2c1);//ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
-		ret = HAL_I2C_Init(&hi2c1);//Õâ¾äÖØÐÂ³õÊ¼»¯I2C¿ØÖÆÆ÷
+		ret = HAL_I2C_DeInit(&hi2c2);//ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
+		ret = HAL_I2C_Init(&hi2c2);//Õâ¾äÖØÐÂ³õÊ¼»¯I2C¿ØÖÆÆ÷
 	}
 	return ret;
 }
@@ -1359,7 +1347,7 @@ static HAL_StatusTypeDef epromWriteHword(uint16_t WriteAddr, uint16_t *wdat){//Ô
 		ret = HAL_ERROR;
 		return ret;
 	}
-	ret = HAL_I2C_Mem_Write(&hi2c1, 
+	ret = HAL_I2C_Mem_Write(&hi2c2, 
 	                        CONFIG_EPROM_WRITE_ADDR, 
 	                        WriteAddr, 
 	                        I2C_MEMADD_SIZE_16BIT, 
@@ -1367,8 +1355,8 @@ static HAL_StatusTypeDef epromWriteHword(uint16_t WriteAddr, uint16_t *wdat){//Ô
 	                        2, 
 	                        CONFIG_EPROM_TIMEOUT);
 	if(ret != HAL_OK){
-		ret = HAL_I2C_DeInit(&hi2c1);//ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
-		ret = HAL_I2C_Init(&hi2c1);//Õâ¾äÖØÐÂ³õÊ¼»¯I2C¿ØÖÆÆ÷	
+		ret = HAL_I2C_DeInit(&hi2c2);//ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
+		ret = HAL_I2C_Init(&hi2c2);//Õâ¾äÖØÐÂ³õÊ¼»¯I2C¿ØÖÆÆ÷	
 	}
 	return ret;
 }
@@ -1381,7 +1369,7 @@ static HAL_StatusTypeDef epromWriteDword(uint16_t WriteAddr, uint32_t *wdat){//Ô
 		ret = HAL_ERROR;
 		return ret;
 	}
-	ret = HAL_I2C_Mem_Write(&hi2c1, 
+	ret = HAL_I2C_Mem_Write(&hi2c2, 
 	                        CONFIG_EPROM_WRITE_ADDR, 
 	                        WriteAddr, 
 	                        I2C_MEMADD_SIZE_16BIT, 
@@ -1389,8 +1377,8 @@ static HAL_StatusTypeDef epromWriteDword(uint16_t WriteAddr, uint32_t *wdat){//Ô
 	                        4, 
 	                        CONFIG_EPROM_TIMEOUT);
 	if(ret != HAL_OK){
-		ret = HAL_I2C_DeInit(&hi2c1);        //ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
-		ret = HAL_I2C_Init(&hi2c1);          //Õâ¾äÖØÐÂ³õÊ¼»¯I2C¿ØÖÆÆ÷
+		ret = HAL_I2C_DeInit(&hi2c2);        //ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
+		ret = HAL_I2C_Init(&hi2c2);          //Õâ¾äÖØÐÂ³õÊ¼»¯I2C¿ØÖÆÆ÷
 	}
 	return ret;
 }   
@@ -1410,19 +1398,19 @@ static HAL_StatusTypeDef epromRead(uint16_t ReadAddr, uint8_t *pBuffer, uint16_t
 	rAddr = ReadAddr;
 	rBuffer = pBuffer;
 	for(doBlock = 0;doBlock < rBlock;doBlock ++){
-		ret = HAL_I2C_Mem_Read(&hi2c1, CONFIG_EPROM_READ_ADDR, rAddr, I2C_MEMADD_SIZE_16BIT, rBuffer, CONFIG_EPROM_PAGE_SIZE, CONFIG_EPROM_TIMEOUT);
+		ret = HAL_I2C_Mem_Read(&hi2c2, CONFIG_EPROM_READ_ADDR, rAddr, I2C_MEMADD_SIZE_16BIT, rBuffer, CONFIG_EPROM_PAGE_SIZE, CONFIG_EPROM_TIMEOUT);
 		if(ret != HAL_OK){
-			ret = HAL_I2C_DeInit(&hi2c1);//ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
-			ret = HAL_I2C_Init(&hi2c1);//Õâ¾äÖØÐÂ³õÊ¼»¯I2C¿ØÖÆÆ÷
+			ret = HAL_I2C_DeInit(&hi2c2);//ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
+			ret = HAL_I2C_Init(&hi2c2);//Õâ¾äÖØÐÂ³õÊ¼»¯I2C¿ØÖÆÆ÷
 		}
 		rAddr += CONFIG_EPROM_PAGE_SIZE;
 		rBuffer += CONFIG_EPROM_PAGE_SIZE;
 	}
 	if(rByte != 0x0){
-		ret = HAL_I2C_Mem_Read(&hi2c1, CONFIG_EPROM_READ_ADDR, rAddr, I2C_MEMADD_SIZE_16BIT, rBuffer, rByte ,CONFIG_EPROM_TIMEOUT);
+		ret = HAL_I2C_Mem_Read(&hi2c2, CONFIG_EPROM_READ_ADDR, rAddr, I2C_MEMADD_SIZE_16BIT, rBuffer, rByte ,CONFIG_EPROM_TIMEOUT);
 		if(ret != HAL_OK){
-			ret = HAL_I2C_DeInit(&hi2c1);        //ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
-			ret = HAL_I2C_Init(&hi2c1);          //Õâ¾äÖØÐÂ³õÊ¼»¯I2C¿ØÖÆÆ÷
+			ret = HAL_I2C_DeInit(&hi2c2);        //ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
+			ret = HAL_I2C_Init(&hi2c2);          //Õâ¾äÖØÐÂ³õÊ¼»¯I2C¿ØÖÆÆ÷
 		}
 	}
 	return ret;	
@@ -1443,10 +1431,10 @@ static HAL_StatusTypeDef epromWrite(uint16_t WriteAddr, uint8_t *pBuffer, uint16
 	wAddr = WriteAddr;
 	wBuffer = pBuffer;
 	for(doBlock = 0;doBlock < wBlock;doBlock ++){
-		ret = HAL_I2C_Mem_Write(&hi2c1, CONFIG_EPROM_WRITE_ADDR, wAddr, I2C_MEMADD_SIZE_16BIT, wBuffer, CONFIG_EPROM_PAGE_SIZE, CONFIG_EPROM_TIMEOUT);
+		ret = HAL_I2C_Mem_Write(&hi2c2, CONFIG_EPROM_WRITE_ADDR, wAddr, I2C_MEMADD_SIZE_16BIT, wBuffer, CONFIG_EPROM_PAGE_SIZE, CONFIG_EPROM_TIMEOUT);
 		if(ret != HAL_OK){
-			ret = HAL_I2C_DeInit(&hi2c1);        //ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
-			ret = HAL_I2C_Init(&hi2c1);          //Õâ¾äÖØÐÂ³õÊ¼»¯I2C¿ØÖÆÆ÷
+			ret = HAL_I2C_DeInit(&hi2c2);        //ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
+			ret = HAL_I2C_Init(&hi2c2);          //Õâ¾äÖØÐÂ³õÊ¼»¯I2C¿ØÖÆÆ÷
 		}
 		wAddr += CONFIG_EPROM_PAGE_SIZE;
 		wBuffer += CONFIG_EPROM_PAGE_SIZE;
@@ -1455,10 +1443,10 @@ static HAL_StatusTypeDef epromWrite(uint16_t WriteAddr, uint8_t *pBuffer, uint16
 #endif
 	}
 	if(wByte != 0x0){		
-		ret = HAL_I2C_Mem_Write(&hi2c1, CONFIG_EPROM_WRITE_ADDR, wAddr, I2C_MEMADD_SIZE_16BIT, wBuffer, wByte, CONFIG_EPROM_TIMEOUT);
+		ret = HAL_I2C_Mem_Write(&hi2c2, CONFIG_EPROM_WRITE_ADDR, wAddr, I2C_MEMADD_SIZE_16BIT, wBuffer, wByte, CONFIG_EPROM_TIMEOUT);
 		if(ret != HAL_OK){
-			ret = HAL_I2C_DeInit(&hi2c1);        //ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
-			ret = HAL_I2C_Init(&hi2c1);          //Õâ¾äÖØÐÂ³õÊ¼»¯I2C¿ØÖÆÆ÷
+			ret = HAL_I2C_DeInit(&hi2c2);        //ÊÍ·ÅIO¿ÚÎªGPIO£¬¸´Î»¾ä±ú×´Ì¬±êÖ¾
+			ret = HAL_I2C_Init(&hi2c2);          //Õâ¾äÖØÐÂ³õÊ¼»¯I2C¿ØÖÆÆ÷
 		}
 	}
 #if CONFIG_EPROM_WRITE_DELAY > 0

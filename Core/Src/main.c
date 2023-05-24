@@ -18,8 +18,12 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "adc.h"
+#include "crc.h"
+#include "dac.h"
 #include "fatfs.h"
 #include "i2c.h"
+#include "rng.h"
 #include "tim.h"
 #include "usart.h"
 #include "usb_host.h"
@@ -91,16 +95,23 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_I2C1_Init();
   MX_TIM2_Init();
-  MX_UART4_Init();
   MX_USART1_UART_Init();
-  MX_TIM7_Init();
   MX_TIM10_Init();
   MX_TIM14_Init();
   MX_TIM11_Init();
   MX_FATFS_Init();
   MX_USB_HOST_Init();
+  MX_ADC1_Init();
+  MX_DAC_Init();
+  MX_I2C2_Init();
+  MX_TIM5_Init();
+  MX_TIM13_Init();
+  MX_TIM4_Init();
+  MX_UART4_Init();
+  MX_CRC_Init();
+  MX_RNG_Init();
+  MX_UART5_Init();
   /* USER CODE BEGIN 2 */
 	bootLoadInit();
 	HAL_FLASH_Unlock();
