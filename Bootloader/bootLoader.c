@@ -4,6 +4,17 @@
 //SECTOR1->16K:BOOTLOADER
 //SECTOR2->16K:BOOTLOADER
 //SECTOR3->16K:BOOTLOADER
+//SECTOR4->64K:BOOTLOADER
+
+//TIM3  CH4 -> G5 AIM PWM
+//TIM4  CH1 -> LED RED PWM
+//TIM4  CH2 -> LED GREEN PWM
+//TIM4  CH3 -> LED BLUE PWM
+//TIM5  CH1 -> SPEAKER OCT
+//TIM8  CH1 -> FAN PWM
+//TIM8  CH2 -> FAN FG IN
+//TIM11 CH4 -> M4 AIM PWM
+//TIM13 CH1 -> TP SET PWM
 /*****************************************************************************/
 #pragma import(__use_no_semihosting_swi)
 /*****************************************************************************/
@@ -11,57 +22,73 @@
 #define GET_INTERLOCK_NC												HAL_GPIO_ReadPin(INTERLOCK_NC_GPIO_Port, INTERLOCK_NC_Pin)
 #define GET_FSWITCH_NO													HAL_GPIO_ReadPin(FS_NO_GPIO_Port, FS_NO_Pin)
 #define GET_FSWITCH_NC													HAL_GPIO_ReadPin(FS_NC_GPIO_Port, FS_NC_Pin)
-
-#define SET_RED_LED_ON													HAL_GPIO_WritePin(RED_LED_PWM_GPIO_Port, GPIO_PIN_7, GPIO_PIN_SET)
-#define SET_RED_LED_OFF													HAL_GPIO_WritePin(RED_LED_PWM_GPIO_Port, GPIO_PIN_7, GPIO_PIN_RESET)
-#define FLIP_RED_LED											 			HAL_GPIO_TogglePin(RED_LED_PWM_GPIO_Port, GPIO_PIN_7)
-
-#define SET_GREEN_LED_ON												HAL_GPIO_WritePin(GREEN_LED_PWM_GPIO_Port, GREEN_LED_PWM_Pin, GPIO_PIN_SET)
-#define SET_GREEN_LED_OFF												HAL_GPIO_WritePin(GREEN_LED_PWM_GPIO_Port, GREEN_LED_PWM_Pin, GPIO_PIN_RESET)
-#define FLIP_GREEN_LED  												HAL_GPIO_TogglePin(GREEN_LED_PWM_GPIO_Port, GREEN_LED_PWM_Pin)
-
-#define SET_BLUE_LED_ON												HAL_GPIO_WritePin(BLUE_LED_PWM_GPIO_Port, BLUE_LED_PWM_Pin, GPIO_PIN_SET)
-#define SET_BLUE_LED_OFF												HAL_GPIO_WritePin(BLUE_LED_PWM_GPIO_Port, BLUE_LED_PWM_Pin, GPIO_PIN_RESET)
-#define FLIP_BLUE_LED  												HAL_GPIO_TogglePin(BLUE_LED_PWM_GPIO_Port, BLUE_LED_PWM_Pin)
-
-#define SET_DBG_LED_ON													HAL_GPIO_WritePin(DBG_LED_GPIO_Port, DBG_LED_Pin, GPIO_PIN_SET)
-#define SET_DBG_LED_OFF												HAL_GPIO_WritePin(DBG_LED_GPIO_Port, DBG_LED_Pin, GPIO_PIN_RESET)
-#define GET_DBG_LED														HAL_GPIO_ReadPin(DBG_LED_GPIO_Port, DBG_LED_Pin)
-#define FLIP_DBG_LED														HAL_GPIO_TogglePin(DBG_LED_GPIO_Port, DBG_LED_Pin)
-
+//OK
+#define SET_RED_LED_ON													HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_2)
+#define SET_RED_LED_OFF												HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_2)
+#define SET_GREEN_LED_ON												HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_1)
+#define SET_GREEN_LED_OFF											HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_1)
+#define SET_BLUE_LED_ON												HAL_TIM_PWM_Start(&htim4, TIM_CHANNEL_3)
+#define SET_BLUE_LED_OFF												HAL_TIM_PWM_Stop(&htim4, TIM_CHANNEL_3)
+//OK
+#define SET_BLUE_LED_DC(b)											__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_3, b);
+#define SET_RED_LED_DC(b)											__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_2, b);
+#define SET_GREEN_LED_DC(b)										__HAL_TIM_SET_COMPARE(&htim4, TIM_CHANNEL_1, b);
+//OK
+#define SET_DBG_LED_ON													HAL_GPIO_WritePin(DBG_LED0_GPIO_Port, DBG_LED0_Pin, GPIO_PIN_SET)
+#define SET_DBG_LED_OFF												HAL_GPIO_WritePin(DBG_LED0_GPIO_Port, DBG_LED0_Pin, GPIO_PIN_RESET)
+#define GET_DBG_LED														HAL_GPIO_ReadPin(DBG_LED0_GPIO_Port, DBG_LED0_Pin)
+#define FLIP_DBG_LED														HAL_GPIO_TogglePin(DBG_LED0_GPIO_Port, DBG_LED0_Pin)
+//OK
 #define SET_LASER_1470_ON											HAL_GPIO_WritePin(LP_PWM0_GPIO_Port, LP_PWM0_Pin, GPIO_PIN_SET)
 #define SET_LASER_1470_OFF											HAL_GPIO_WritePin(LP_PWM0_GPIO_Port, LP_PWM0_Pin, GPIO_PIN_RESET)
 #define FLIP_LASER_1470												HAL_GPIO_TogglePin(LP_PWM0_GPIO_Port, LP_PWM0_Pin)
-
+//OK
 #define SET_LASER_980_ON												HAL_GPIO_WritePin(LP_PWM1_GPIO_Port, LP_PWM1_Pin, GPIO_PIN_SET)
 #define SET_LASER_980_OFF											HAL_GPIO_WritePin(LP_PWM1_GPIO_Port, LP_PWM1_Pin, GPIO_PIN_RESET)
 #define FLIP_LASER_980													HAL_GPIO_TogglePin(LP_PWM1_GPIO_Port, LP_PWM1_Pin)
-
+//OK
 #define SET_LASER_635_ON												HAL_GPIO_WritePin(G5_AIM_PWM_GPIO_Port, G5_AIM_PWM_Pin, GPIO_PIN_SET)
 #define SET_LASER_635_OFF											HAL_GPIO_WritePin(G5_AIM_PWM_GPIO_Port, G5_AIM_PWM_Pin, GPIO_PIN_RESET)
 #define FLIP_LASER_635													HAL_GPIO_TogglePin(G5_AIM_PWM_GPIO_Port, G5_AIM_PWM_Pin)
-
+//OK
 #define GET_LASER_1470													HAL_GPIO_ReadPin(LP_PWM0_GPIO_Port, LP_PWM0_Pin)
 #define GET_LASER_980													HAL_GPIO_ReadPin(LP_PWM1_GPIO_Port, LP_PWM1_Pin)
 #define GET_LASER_635													HAL_GPIO_ReadPin(G5_AIM_PWM_GPIO_Port, G5_AIM_PWM_Pin)
-
-#define SET_SPEAKER_ON													HAL_GPIO_WritePin(SPK_TIMER_GPIO_Port, SPK_TIMER_Pin, GPIO_PIN_RESET)
-#define SET_SPEAKER_OFF												HAL_GPIO_WritePin(SPK_TIMER_GPIO_Port, SPK_TIMER_Pin, GPIO_PIN_SET)
-
-#define SET_M4_AIM_ON													HAL_GPIO_WritePin(M4_PIC_GPIO_Port, M4_PIC_Pin, GPIO_PIN_SET)
-#define SET_M4_AIM_OFF													HAL_GPIO_WritePin(M4_PIC_GPIO_Port, M4_PIC_Pin, GPIO_PIN_SET)
-
+//OK
+#define SET_SPK_ON															HAL_TIM_OC_Start(&htim5, TIM_CHANNEL_1)
+#define SET_SPK_OFF														HAL_TIM_OC_Stop(&htim5, TIM_CHANNEL_1)
+#define SET_SPK_FREQ(b)												setSpeakerFreq(b)
+//OK
+#define SET_M4_AIM_ON													HAL_TIM_PWM_Start(&htim11, TIM_CHANNEL_1)
+#define SET_M4_AIM_OFF													HAL_TIM_PWM_Stop(&htim11, TIM_CHANNEL_1)
+#define SET_M4_AIM_DC(b)												__HAL_TIM_SET_COMPARE(&htim11, TIM_CHANNEL_1, b)
+//OK
+#define SET_G5_AIM_ON													HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4)
+#define SET_G5_AIM_OFF													HAL_TIM_PWM_Stop(&htim3, TIM_CHANNEL_4)
+#define SET_G5_AIM_DC(b)												__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, b)
+//OK
 #define SET_FAN_ENA_ON													HAL_GPIO_WritePin(FAN_ENA_GPIO_Port, FAN_ENA_Pin, GPIO_PIN_SET)
 #define SET_FAN_ENA_OFF												HAL_GPIO_WritePin(FAN_ENA_GPIO_Port, FAN_ENA_Pin, GPIO_PIN_RESET)
-
-#define SET_FAN_PWM_ON													HAL_GPIO_WritePin(FAN_PWM_GPIO_Port, FAN_PWM_Pin, GPIO_PIN_RESET)
-#define SET_FAN_PWM_OFF												HAL_GPIO_WritePin(FAN_PWM_GPIO_Port, FAN_PWM_Pin, GPIO_PIN_SET)
-
+//OK
+#define SET_FAN_PWM_ON													HAL_TIM_PWM_Start(&htim8, TIM_CHANNEL_1)	
+#define SET_FAN_PWM_OFF												HAL_TIM_PWM_Stop(&htim8, TIM_CHANNEL_1)
+#define SET_FAN_PWM_DC(b)											__HAL_TIM_SET_COMPARE(&htim8, TIM_CHANNEL_1, b)
+//OK
+#define SET_TP_SET_ON													HAL_TIM_PWM_Start(&htim13, TIM_CHANNEL_1)	
+#define SET_TP_SET_OFF													HAL_TIM_PWM_Stop(&htim13, TIM_CHANNEL_1)
+#define SET_TP_SET_DC(b)												__HAL_TIM_SET_COMPARE(&htim13, TIM_CHANNEL_1, b)
+//OK
 #define SET_TP_PWM_ON													HAL_GPIO_WritePin(TP_PWM_GPIO_Port, TP_PWM_Pin, GPIO_PIN_SET)
 #define SET_TP_PWM_OFF													HAL_GPIO_WritePin(TP_PWM_GPIO_Port, TP_PWM_Pin, GPIO_PIN_RESET)
+//OK
+#define SET_TP_DIR_ON													HAL_GPIO_WritePin(TP_DIR_GPIO_Port, TP_DIR_Pin, GPIO_PIN_SET)
+#define SET_TP_DIR_OFF													HAL_GPIO_WritePin(TP_DIR_GPIO_Port, TP_DIR_Pin, GPIO_PIN_RESET)
+#define FLIP_TP_DIR														HAL_GPIO_TogglePin(TP_DIR_GPIO_Port, TP_DIR_Pin)
+//OK
+#define SET_SPK_CS(b)						HAL_GPIO_WritePin(SPK_CS_GPIO_Port, SPK_CS_Pin, b)
+#define SET_SPK_SCK(b)					HAL_GPIO_WritePin(SPK_SCK_GPIO_Port, SPK_SCK_Pin, b)
+#define SET_SPK_SDI(b)					HAL_GPIO_WritePin(SPK_SDI_GPIO_Port, SPK_SDI_Pin, b)
 
-#define SET_TP_COOL															HAL_GPIO_WritePin(TP_DIR_GPIO_Port, TP_DIR_Pin, GPIO_PIN_RESET)
-#define SET_TP_HOT																HAL_GPIO_WritePin(TP_DIR_GPIO_Port, TP_DIR_Pin, GPIO_PIN_RESET)
 /*****************************************************************************/
 #define BT_STATE_IDLE														0//空闲
 #define BT_STATE_LOAD_FWINFO										1//EPROM载入固件信息
@@ -123,12 +150,15 @@ typedef enum {
 }clarmEpromCmd_t;
 /*****************************************************************************/
 extern UART_HandleTypeDef huart1;//调试
-extern UART_HandleTypeDef huart4;
-extern TIM_HandleTypeDef htim2;//FAN PWM
-extern TIM_HandleTypeDef htim7;//DAC DMA 计时器
-extern TIM_HandleTypeDef htim10;//Laser Timer
-extern TIM_HandleTypeDef htim12;//FAN PWM
-extern TIM_HandleTypeDef htim14;//sPlc Timer
+extern UART_HandleTypeDef huart4;//LCD
+extern UART_HandleTypeDef huart5;//NFC
+extern TIM_HandleTypeDef htim2;
+extern TIM_HandleTypeDef htim3;
+extern TIM_HandleTypeDef htim4;
+extern TIM_HandleTypeDef htim5;
+extern TIM_HandleTypeDef htim8;
+extern TIM_HandleTypeDef htim11;
+extern TIM_HandleTypeDef htim13;
 extern I2C_HandleTypeDef hi2c2;
 extern USBH_HandleTypeDef hUsbHostFS;
 /*****************************************************************************/
@@ -138,14 +168,14 @@ uint32_t RamAddress = 0x00;
 static __IO uint32_t LastPGAddress = APPLICATION_FLASH_START_ADDRESS;
 uint8_t RAM_Buf[BUFFER_SIZE] = {0x00};//文件读写缓冲
 /*****************************************************************************/
-const char BootLoadMainVer __attribute__((at(BOOTLOAD_MAIN_ADDRESS)))   		= '1';
-const char BootLoadMinorVer __attribute__((at(BOOTLAOD_MINOR_ADDRESS)))  		= '4';
+const char BootLoadMainVer __attribute__((at(BOOTLOAD_MAIN_ADDRESS)))   		= '2';
+const char BootLoadMinorVer __attribute__((at(BOOTLAOD_MINOR_ADDRESS)))  		= '0';
 /*****************************************************************************/
 uint8_t cmdShakeHandOp[] = {0xEE,0x04,0xFF,0xFC,0xFF,0xFF};
 uint8_t cmdShakeHandRespondOp[] = {0xEE,0x55,0xFF,0xFC,0xFF,0xFF};
-	//复位大彩指令集
+//复位大彩指令集
 uint8_t cmdResetOp[] = {0x61,0x78,0x72,0x63, 0x65,0x6b,0x67,0x64, 0x79,0x68,0x74,0x73, 0x75,0x6e,0x71,0x77, 0x70,0x6a,0x62,0x76, 0x69,0x66,0x6f,0x6d, 0x7a,0x6c};
-	//格式化文件系统
+//格式化文件系统
 uint8_t cmdFormatOp[] = {0xee,0xab,0xba,0xaa,0xbb,0x36,0x3f,0xff,0xfc,0xff,0xff};         
 uint8_t cmdResetHmiOp[] = {0xEE,0x07,0x35,0x5A,0x53,0xA5,0xFF,0xFC,0xFF,0xFF};
 uint8_t gddcRxBuf[GDDC_RX_BUF_SIZE];//屏幕串口接收缓冲区
@@ -207,6 +237,9 @@ static void listEpromTable(void);
 static uint8_t cmpByte(uint8_t *psrc, uint8_t *pdist, uint16_t len);
 static FRESULT crcLcdFile(char* scanPath);
 static FRESULT updateLcdFile(char* scanPath);
+
+static void writeMcp41010(uint8_t dat);
+static void setSpeakerFreq(uint16_t freq);
 /******************************************************************************/
 static uint8_t cmpByte(uint8_t *psrc, uint8_t *pdist, uint16_t len){
 	uint16_t i;
@@ -221,16 +254,25 @@ static uint8_t cmpByte(uint8_t *psrc, uint8_t *pdist, uint16_t len){
 void bootLoadInit(void){//引导程序初始化
 	forceUpdateMcu = 0;
 	forceUpdateLcd = 0;
-	SET_SPEAKER_OFF;//关闭蜂鸣器
+	writeMcp41010(0xFF);
+	SET_SPK_FREQ(1000);
+	SET_SPK_ON;
+	HAL_Delay(500);
+	SET_SPK_OFF;
 	SET_FAN_PWM_OFF;//打开激光器冷却风扇
-	SET_FAN_ENA_OFF;
+	SET_FAN_ENA_ON;
 	SET_TP_PWM_OFF;
-	SET_TP_COOL;
+	SET_TP_DIR_OFF;
+	SET_RED_LED_DC(100);
+	SET_GREEN_LED_DC(100);
+	SET_BLUE_LED_DC(100);
+	SET_FAN_PWM_DC(100);
 	//关闭所有激光
 	SET_LASER_1470_OFF;
 	SET_LASER_980_OFF;
 	SET_LASER_635_OFF;
 	SET_M4_AIM_OFF;
+	SET_G5_AIM_OFF;
 	//关闭所有LED
 	SET_RED_LED_OFF;
 	SET_GREEN_LED_OFF;
@@ -323,12 +365,6 @@ void bootLoadProcess(void){//bootload 执行程序
 	crcUdisk = 0;;
 	switch(bootLoadState){
 		case BT_STATE_IDLE:{//开机等待U盘识别     
-			SET_LASER_635_OFF;
-			SET_FAN_PWM_OFF;
-			SET_M4_AIM_OFF;
-			SET_RED_LED_OFF;
-			SET_GREEN_LED_OFF;
-			SET_BLUE_LED_OFF;
 			printf("\n\n\n\n");
 			printf("Bootloader:Start...............\n");
 			listEpromTable();
@@ -360,18 +396,24 @@ void bootLoadProcess(void){//bootload 执行程序
 				(GET_FSWITCH_NO == GPIO_PIN_RESET)){//脚踏踩下		
 				SET_FAN_PWM_ON;//打开激光器冷却风扇
 				SET_FAN_ENA_ON;
+				SET_FAN_PWM_DC(100);
+				HAL_Delay(100);
+					
 				SET_RED_LED_ON;
 				SET_GREEN_LED_OFF;
 				SET_BLUE_LED_OFF;	
 				HAL_Delay(500);
+					
 				SET_RED_LED_OFF;
 				SET_GREEN_LED_ON;
 				SET_BLUE_LED_OFF;	
 				HAL_Delay(500);
+					
 				SET_RED_LED_OFF;
 				SET_GREEN_LED_OFF;
 				SET_BLUE_LED_ON;	
-				HAL_Delay(500);	
+				HAL_Delay(500);
+					
 				SET_RED_LED_OFF;
 				SET_GREEN_LED_OFF;
 				SET_BLUE_LED_OFF;
@@ -676,6 +718,10 @@ void bootLoadProcess(void){//bootload 执行程序
 				HAL_NVIC_ClearPendingIRQ(OTG_FS_IRQn);
 				Jump_To_Application();
 			}
+			SET_BLUE_LED_ON;
+			SET_RED_LED_ON;
+			SET_GREEN_LED_ON;
+			//点亮白色指示灯
 			bootLoadFailHandler(BT_FAIL_VECTOR_TABLE_INVALID);
 		}
 		default:break;
@@ -684,10 +730,6 @@ void bootLoadProcess(void){//bootload 执行程序
 
 static void bootLoadFailHandler(uint8_t ftype){//引导错误程序
 	MX_DriverVbusFS(FALSE);//关闭USB VBUS
-	printf("Bootloader:SYS_ERR_LED->On!\n");
-	SET_RED_LED_ON;
-	SET_GREEN_LED_OFF;
-	SET_BLUE_LED_OFF;
 	switch(ftype){
 		case BT_FAIL_READ_CFG:{//从U盘读取CFG失败
 			printf("Bootloader:FailHandler,Read config file fail!.\n");
@@ -1194,16 +1236,6 @@ static void UsbGpioReset(void){//模拟USB拔插动作并关闭VBUS供电
 	softDelayMs(100);
 	HAL_GPIO_DeInit(GPIOA, GPIO_PIN_12);
 	__HAL_RCC_GPIOA_CLK_DISABLE();
-	__HAL_RCC_GPIOG_CLK_ENABLE();
-	HAL_GPIO_WritePin(GPIOG,GPIO_PIN_8, GPIO_PIN_RESET);
-	GPIO_InitStruct.Pin = GPIO_PIN_8;
-	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-	HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
-	softDelayMs(200);
-	HAL_GPIO_DeInit(GPIOG, GPIO_PIN_12);
-	__HAL_RCC_GPIOG_CLK_DISABLE();	
 	__HAL_RCC_USB_OTG_FS_CLK_DISABLE();//关闭USB时钟
 	HAL_NVIC_DisableIRQ(OTG_FS_IRQn);//关闭USB 中断
 	HAL_NVIC_ClearPendingIRQ(OTG_FS_IRQn);//清楚 USB 中断标志
@@ -1240,11 +1272,16 @@ static void SystemClock_Reset(void){//复位系统时钟
 void resetInit(void){//复位后初始化
 	HAL_DeInit();
 	HAL_TIM_Base_MspDeInit(&htim2);
-	HAL_TIM_Base_MspDeInit(&htim10);
-	HAL_TIM_Base_MspDeInit(&htim14);	
+	HAL_TIM_Base_MspDeInit(&htim3);
+	HAL_TIM_Base_MspDeInit(&htim4);
+	HAL_TIM_Base_MspDeInit(&htim5);
+	HAL_TIM_Base_MspDeInit(&htim8);
+	HAL_TIM_Base_MspDeInit(&htim11);
+	HAL_TIM_Base_MspDeInit(&htim13);	
 	HAL_I2C_MspDeInit(&hi2c2);
 	HAL_UART_MspDeInit(&huart1);
 	HAL_UART_MspDeInit(&huart4);
+	HAL_UART_MspDeInit(&huart5);
 	USBH_DeInit(&hUsbHostFS);
 	//复位RCC时钟
 	SystemClock_Reset();
@@ -1616,4 +1653,81 @@ static FRESULT updateLcdFile(char* scanPath){//扫描文件夹内全部文件并上传
 	f_closedir(srcdir);
 	return retUsbH;
 }
+
+	
+static void setSpeakerFreq(uint16_t freq){
+  /*##-1- Configure the TIM peripheral #######################################*/ 
+    /* ---------------------------------------------------------------------------
+    TIM3 Configuration: Output Compare Toggle Mode:
+    
+    In this example TIM5 input clock (TIM5CLK) is set to 2 * APB1 clock (PCLK1), 
+    since APB1 prescaler is different from 1.   
+      TIM5CLK = 2 * PCLK1  
+      PCLK1 = HCLK / 4 
+      => TIM3CLK = HCLK / 2 = SystemCoreClock /2
+          
+    To get TIM5 counter clock at 18 MHz, the prescaler is computed as follows:
+       Prescaler = (TIM5CLK / TIM5 counter clock) - 1
+       Prescaler = ((SystemCoreClock /2) /18 MHz) - 1
+                                              
+     CC1 update rate = TIM5 counter clock / uhCCR1_Val = 439.44 Hz
+	   
+		==> So the TIM3 Channel 1 generates a periodic signal with a 
+	       frequency equal to 219.72 Hz.
+    Note:
+     SystemCoreClock variable holds HCLK frequency and is defined in system_stm32f4xx.c file.
+     Each time the core clock (HCLK) changes, user had to update SystemCoreClock 
+     variable value. Otherwise, any configuration based on this variable will be incorrect.
+     This variable is updated in three ways:
+      1) by calling CMSIS function SystemCoreClockUpdate()
+      2) by calling HAL API function HAL_RCC_GetSysClockFreq()
+      3) each time HAL_RCC_ClockConfig() is called to configure the system clock frequency  
+  --------------------------------------------------------------------------- */ 
+	//TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  //TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+	__IO uint32_t uhCCR1_Val;
+	uint32_t uwPrescalerValue = (uint32_t)(((SystemCoreClock /2) / 18000000) - 1);
+  uhCCR1_Val = 18000000 / freq / 2;
+  htim5.Instance = TIM5;
+  htim5.Init.Period        			= 65535;
+  htim5.Init.Prescaler     			= uwPrescalerValue;
+  htim5.Init.ClockDivision 			= 0;
+  htim5.Init.CounterMode   			= TIM_COUNTERMODE_UP;
+  htim5.Init.AutoReloadPreload 	= TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if(HAL_TIM_OC_Init(&htim5) 		!= HAL_OK){
+		printf("reSet TIM5 base clk fail!!!\n");
+  }
+	
+	sConfigOC.OCMode = TIM_OCMODE_TOGGLE;
+  sConfigOC.Pulse = uhCCR1_Val;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_LOW;
+  if(HAL_TIM_OC_ConfigChannel(&htim5, &sConfigOC, TIM_CHANNEL_1) != HAL_OK){
+    printf("reSet TIM5 out freq fail!!!\n");
+  }
+}
+
+static void writeMcp41010(uint8_t dat){//MCP41010 模拟SPI写入
+	uint16_t tmp, i;
+	SET_SPK_CS(GPIO_PIN_RESET);//CS = 0
+	tmp = 0x11FF;//write cmd tap 0
+	tmp |= dat;
+	__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();
+	for(i = 0;i < 16;i ++){
+		tmp = (uint8_t)(tmp >> (15 - i)) & 0x01;
+		SET_SPK_SDI((GPIO_PinState)tmp);//dat -> SDI
+		__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();
+		__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();
+		SET_SPK_SCK(GPIO_PIN_SET);//SCK -> 1
+		__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();
+		__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();
+		SET_SPK_SCK(GPIO_PIN_RESET);//SCK -> 0
+		__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();
+		__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();
+	}
+	__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();
+	__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();__nop();
+	SET_SPK_CS(GPIO_PIN_SET);
+}
+
 

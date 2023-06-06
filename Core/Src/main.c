@@ -21,6 +21,7 @@
 #include "adc.h"
 #include "crc.h"
 #include "dac.h"
+#include "dma.h"
 #include "fatfs.h"
 #include "i2c.h"
 #include "rng.h"
@@ -95,10 +96,9 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_TIM2_Init();
   MX_USART1_UART_Init();
-  MX_TIM10_Init();
-  MX_TIM14_Init();
   MX_TIM11_Init();
   MX_FATFS_Init();
   MX_USB_HOST_Init();
@@ -112,6 +112,8 @@ int main(void)
   MX_CRC_Init();
   MX_RNG_Init();
   MX_UART5_Init();
+  MX_TIM3_Init();
+  MX_TIM8_Init();
   /* USER CODE BEGIN 2 */
 	bootLoadInit();
 	HAL_FLASH_Unlock();

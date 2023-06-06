@@ -75,8 +75,8 @@ void Error_Handler(void);
 #define SPK_CS_GPIO_Port GPIOA
 #define SPK_SCK_Pin GPIO_PIN_2
 #define SPK_SCK_GPIO_Port GPIOA
-#define SPK_SI_Pin GPIO_PIN_3
-#define SPK_SI_GPIO_Port GPIOA
+#define SPK_SDI_Pin GPIO_PIN_3
+#define SPK_SDI_GPIO_Port GPIOA
 #define LP_SET1_Pin GPIO_PIN_4
 #define LP_SET1_GPIO_Port GPIOA
 #define LP_SET0_Pin GPIO_PIN_5
@@ -91,12 +91,16 @@ void Error_Handler(void);
 #define LPR0_NTC_GPIO_Port GPIOC
 #define TPR1_NTC_Pin GPIO_PIN_0
 #define TPR1_NTC_GPIO_Port GPIOB
-#define EPROM_SCL_Pin GPIO_PIN_10
-#define EPROM_SCL_GPIO_Port GPIOB
-#define EPROM_SDA_Pin GPIO_PIN_11
-#define EPROM_SDA_GPIO_Port GPIOB
-#define DBG_LED_Pin GPIO_PIN_12
-#define DBG_LED_GPIO_Port GPIOB
+#define SYSID0_Pin GPIO_PIN_1
+#define SYSID0_GPIO_Port GPIOB
+#define SYSID1_Pin GPIO_PIN_2
+#define SYSID1_GPIO_Port GPIOB
+#define I2C2_SCL_Pin GPIO_PIN_10
+#define I2C2_SCL_GPIO_Port GPIOB
+#define I2C2_SDA_Pin GPIO_PIN_11
+#define I2C2_SDA_GPIO_Port GPIOB
+#define DBG_LED0_Pin GPIO_PIN_12
+#define DBG_LED0_GPIO_Port GPIOB
 #define TP_DIR_Pin GPIO_PIN_13
 #define TP_DIR_GPIO_Port GPIOB
 #define LAS_FB_Pin GPIO_PIN_14
@@ -127,14 +131,14 @@ void Error_Handler(void);
 #define FS_NO_GPIO_Port GPIOB
 #define FS_NC_Pin GPIO_PIN_5
 #define FS_NC_GPIO_Port GPIOB
-#define RED_LED_PWM_Pin GPIO_PIN_6
-#define RED_LED_PWM_GPIO_Port GPIOB
-#define GREEN_LED_PWM_Pin GPIO_PIN_7
-#define GREEN_LED_PWM_GPIO_Port GPIOB
-#define BLUE_LED_PWM_Pin GPIO_PIN_8
-#define BLUE_LED_PWM_GPIO_Port GPIOB
-#define M4_PIC_Pin GPIO_PIN_9
-#define M4_PIC_GPIO_Port GPIOB
+#define LED_RED_Pin GPIO_PIN_6
+#define LED_RED_GPIO_Port GPIOB
+#define LED_GREEN_Pin GPIO_PIN_7
+#define LED_GREEN_GPIO_Port GPIOB
+#define LED_BLUE_Pin GPIO_PIN_8
+#define LED_BLUE_GPIO_Port GPIOB
+#define M4_AIM_PWM_Pin GPIO_PIN_9
+#define M4_AIM_PWM_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
