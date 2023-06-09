@@ -18,9 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "adc.h"
 #include "crc.h"
-#include "dac.h"
 #include "dma.h"
 #include "fatfs.h"
 #include "i2c.h"
@@ -102,8 +100,6 @@ int main(void)
   MX_TIM11_Init();
   MX_FATFS_Init();
   MX_USB_HOST_Init();
-  MX_ADC1_Init();
-  MX_DAC_Init();
   MX_I2C2_Init();
   MX_TIM5_Init();
   MX_TIM13_Init();

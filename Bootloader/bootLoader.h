@@ -21,6 +21,7 @@
 #include "deviceConfig.h"
 /*****************************************************************************/
 #include "..\..\dwLaser_Application\MCU_Application\sPlc\sPlcConfig.h"
+#include "..\..\dwLaser_Application\MCU_Application\MainApp\pinDefine.h"
 /*****************************************************************************/
 extern uint8_t usbReady;//USB DISK¾ÍÐ÷
 /*****************************************************************************/
