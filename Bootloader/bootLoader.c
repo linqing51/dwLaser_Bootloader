@@ -148,7 +148,7 @@ static __IO uint32_t LastPGAddress = APPLICATION_FLASH_START_ADDRESS;
 uint8_t RAM_Buf[BUFFER_SIZE] = {0x00};//文件读写缓冲
 /*****************************************************************************/
 const char BootLoadMainVer __attribute__((at(BOOTLOAD_MAIN_ADDRESS)))   			= '1';
-const char BootLoadMinorVer __attribute__((at(BOOTLAOD_MINOR_ADDRESS)))  		= '5';
+const char BootLoadMinorVer __attribute__((at(BOOTLAOD_MINOR_ADDRESS)))  		= '6';
 /*****************************************************************************/
 uint8_t cmdShakeHandOp[] = {0xEE,0x04,0xFF,0xFC,0xFF,0xFF};
 uint8_t cmdShakeHandRespondOp[] = {0xEE,0x55,0xFF,0xFC,0xFF,0xFF};
@@ -278,24 +278,45 @@ void bootLoadInit(void){//引导程序初始化
 	else{//TTL=L
 		printf("Bootloader:INPUT->ESTOP_NC      = Close!\n");
 	}
+#ifdef MODEL_PVGLS_15W_1470_A1
+	if(GET_FSWITCH_NC == GPIO_PIN_SET){//TTL=H
+		printf("Bootloader:INPUT->FSWITCH_NC    = Close!\n");
+	}
+	else{//TTL=L
+		printf("Bootloader:INPUT->FSWITCH_NC    = Open!\n");
+	}
+#endif
+#ifdef MODEL_PVGLS_15W_1470
 	if(GET_FSWITCH_NC == GPIO_PIN_SET){//TTL=H
 		printf("Bootloader:INPUT->FSWITCH_NC    = Open!\n");
 	}
 	else{//TTL=L
 		printf("Bootloader:INPUT->FSWITCH_NC    = Close!\n");
 	}
+#endif
 	if(GET_FSWITCH_NO == GPIO_PIN_SET){//TTL=H
 		printf("Bootloader:INPUT->FSWITCH_NO    = Open!\n");
 	}
 	else{//TTL=L
 		printf("Bootloader:INPUT->FSWITCH_NO    = Close!\n");
 	}
+
+#ifdef MODEL_PVGLS_15W_1470
 	if(GET_INTERLOCK_NC == GPIO_PIN_SET){//TTL=H
 		printf("Bootloader:INPUT->INTERLOCK     = Open!\n");
 	}
 	else{
 		printf("Bootloader:INPUT->INTERLOCK     = Close!\n");
 	}
+#endif
+#ifdef MODEL_PVGLS_15W_1470_A1
+	if(GET_INTERLOCK_NC == GPIO_PIN_SET){//TTL=H
+		printf("Bootloader:INPUT->INTERLOCK     = Close!\n");
+	}
+	else{
+		printf("Bootloader:INPUT->INTERLOCK     = Open!\n");
+	}
+#endif
 	//显示输出IO状态
 	if(GET_LASER_CH0 == GPIO_PIN_SET){//LPA_PWM0
 		printf("Bootloader:OUTPUT->LAS_PWM0     = High!\n");
@@ -367,9 +388,16 @@ void bootLoadProcess(void){//bootload 执行程序
 			printf("Bootloader:Build->%s:%s\n", __DATE__, __TIME__);
 			printf("Bootloader:Bootload Start  :0x%08X,End:0x%08X,Size:0x%08X\n", BOOTLOADER_FLASH_START_ADDRESS, BOOTLOADER_FLASH_END_ADDRESS ,BOOTLOADER_FLASH_SIZE);
 			printf("Bootloader:Applicent Start :0x%08X,End:0x%08X,Size:0x%08X\n", APPLICATION_FLASH_START_ADDRESS, APPLICATION_FLASH_END_ADDRESS, APPLICATION_FLASH_SIZE);
+#ifdef MODEL_PVGLS_15W_1470
 			if(	(GET_INTERLOCK_NC == GPIO_PIN_SET) &&//安全连锁未插入
 				(GET_FSWITCH_NC == GPIO_PIN_RESET) &&//脚踏插入
 				(GET_FSWITCH_NO == GPIO_PIN_RESET)){//脚踏踩下		
+#endif
+#ifdef MODEL_PVGLS_15W_1470_A1
+			if(	(GET_INTERLOCK_NC == GPIO_PIN_RESET) &&//安全连锁插入
+				(GET_FSWITCH_NC == GPIO_PIN_SET) &&//脚踏插入
+				(GET_FSWITCH_NO == GPIO_PIN_RESET)){//脚踏踩下	
+#endif
 				SET_FAN_ON;
 				SET_RED_LED_ON;
 				SET_GREEN_LED_OFF;
